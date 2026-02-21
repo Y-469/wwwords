@@ -392,6 +392,14 @@ body {
           <h3>4択クイズ - 未学習</h3>
           <p>まだ一度も出題されていない単語</p>
         </div>
+        <div class="mode-card" onclick="startQuiz('all','ja2en')">
+          <h3>4択クイズ(逆) - 全単語</h3>
+          <p>日本語→英単語の意味を選択</p>
+        </div>
+        <div class="mode-card" onclick="startQuiz('weak','ja2en')">
+          <h3>4択クイズ(逆) - 苦手復習</h3>
+          <p>正答率の低い単語を優先して出題</p>
+        </div>
         <div class="mode-card" onclick="startWriting('all')">
           <h3>記述モード - 全単語</h3>
           <p>日本語の意味を見て英単語をタイプ</p>
@@ -749,7 +757,7 @@ function updateStreak() {
 }
 
 // ===== QUIZ =====
-function startQuiz(mode) {
+function startQuiz(mode, direction) {
   const count = parseInt(document.getElementById('questionCount').value);
   let pool = [...WORDS];
 
@@ -769,6 +777,7 @@ function startQuiz(mode) {
 
   currentSession = {
     type: 'quiz',
+    direction: direction || 'en2ja',
     questions: pool,
     current: 0,
     correct: 0,
@@ -789,6 +798,7 @@ function renderQuizQuestion() {
 
   s.answered = false;
   const word = s.questions[s.current];
+  const isJa2En = s.direction === 'ja2en';
   const pct = (s.current / s.questions.length * 100).toFixed(0);
   document.getElementById('quizProgressFill').style.width = pct + '%';
   document.getElementById('quizProgressText').textContent = `${s.current + 1} / ${s.questions.length}`;
@@ -797,15 +807,18 @@ function renderQuizQuestion() {
   card.classList.remove('animate-in');
   void card.offsetWidth;
   card.classList.add('animate-in');
-  document.getElementById('quizWord').textContent = word.en;
+  document.querySelector('#quizCard .card-label').textContent = isJa2En ? '日本語' : 'English';
+  const wordEl = document.getElementById('quizWord');
+  wordEl.textContent = isJa2En ? word.ja : word.en;
+  wordEl.style.fontSize = isJa2En ? '1.5rem' : '';
 
   // Generate 4 choices
   const choices = [word];
   const others = WORDS.filter(w => w.en !== word.en);
   shuffle(others);
   for (let i = 0; choices.length < 4 && i < others.length; i++) {
-    // Avoid duplicates in Japanese meaning
-    if (!choices.some(c => c.ja === others[i].ja)) {
+    const dupKey = isJa2En ? 'en' : 'ja';
+    if (!choices.some(c => c[dupKey] === others[i][dupKey])) {
       choices.push(others[i]);
     }
   }
@@ -816,7 +829,7 @@ function renderQuizQuestion() {
   container.innerHTML = choices.map((c, i) => `
     <button class="choice-btn" onclick="answerQuiz(this, '${escape(c.en)}', '${escape(word.en)}')">
       <span class="choice-key">${keys[i]}</span>
-      <span>${c.ja}</span>
+      <span>${isJa2En ? c.en : c.ja}</span>
     </button>
   `).join('');
 }
@@ -828,12 +841,14 @@ function answerQuiz(btn, chosen, correct) {
   currentSession.answered = true;
 
   const word = currentSession.questions[currentSession.current];
+  const isJa2En = currentSession.direction === 'ja2en';
   const isCorrect = chosen === correct;
+  const correctText = isJa2En ? word.en : word.ja;
   const buttons = document.querySelectorAll('.choice-btn');
 
   buttons.forEach(b => {
     b.classList.add('disabled');
-    if (b.querySelector('span:last-child').textContent === word.ja) {
+    if (b.querySelector('span:last-child').textContent === correctText) {
       b.classList.add('correct');
     }
   });
@@ -1025,8 +1040,9 @@ function retryWrong(mode) {
   const wrongWords = [...currentSession.wrongWords];
 
   if (mode === 'quiz') {
+    const dir = currentSession.direction || 'en2ja';
     currentSession = {
-      type: 'quiz', questions: wrongWords, current: 0,
+      type: 'quiz', direction: dir, questions: wrongWords, current: 0,
       correct: 0, wrong: 0, wrongWords: [], answered: false
     };
     document.getElementById('quizActive').style.display = '';
