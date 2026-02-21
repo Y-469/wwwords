@@ -1,0 +1,378 @@
+[
+  {
+    "en": "implement",
+    "ja": "実行する/導入する"
+  },
+  {
+    "en": "enhance",
+    "ja": "高める/強化する"
+  },
+  {
+    "en": "sustainability",
+    "ja": "持続可能性"
+  },
+  {
+    "en": "financial",
+    "ja": "財務の/経済的な"
+  },
+  {
+    "en": "pressure",
+    "ja": "圧力/プレッシャー"
+  },
+  {
+    "en": "decline",
+    "ja": "減少する/衰退"
+  },
+  {
+    "en": "revenue",
+    "ja": "収益"
+  },
+  {
+    "en": "profit",
+    "ja": "利益"
+  },
+  {
+    "en": "investment",
+    "ja": "投資"
+  },
+  {
+    "en": "competitive",
+    "ja": "競争力のある"
+  },
+  {
+    "en": "efficient",
+    "ja": "効率的な"
+  },
+  {
+    "en": "strategy",
+    "ja": "戦略"
+  },
+  {
+    "en": "policy",
+    "ja": "方針"
+  },
+  {
+    "en": "impact",
+    "ja": "影響"
+  },
+  {
+    "en": "significant",
+    "ja": "重要な/かなりの"
+  },
+  {
+    "en": "approach",
+    "ja": "方法/取り組み"
+  },
+  {
+    "en": "maintain",
+    "ja": "維持する"
+  },
+  {
+    "en": "expand",
+    "ja": "拡大する"
+  },
+  {
+    "en": "reduce",
+    "ja": "減らす"
+  },
+  {
+    "en": "increase",
+    "ja": "増やす/増える"
+  },
+  {
+    "en": "launch",
+    "ja": "開始する/発売する"
+  },
+  {
+    "en": "introduce",
+    "ja": "導入する"
+  },
+  {
+    "en": "consider",
+    "ja": "検討する"
+  },
+  {
+    "en": "improve",
+    "ja": "改善する"
+  },
+  {
+    "en": "develop",
+    "ja": "発展させる"
+  },
+  {
+    "en": "manage",
+    "ja": "管理する/何とかする"
+  },
+  {
+    "en": "achieve",
+    "ja": "達成する"
+  },
+  {
+    "en": "require",
+    "ja": "必要とする"
+  },
+  {
+    "en": "provide",
+    "ja": "提供する"
+  },
+  {
+    "en": "respond",
+    "ja": "対応する"
+  },
+  {
+    "en": "complaint",
+    "ja": "苦情"
+  },
+  {
+    "en": "issue",
+    "ja": "問題"
+  },
+  {
+    "en": "delay",
+    "ja": "遅延"
+  },
+  {
+    "en": "risk",
+    "ja": "リスク"
+  },
+  {
+    "en": "opportunity",
+    "ja": "機会"
+  },
+  {
+    "en": "growth",
+    "ja": "成長"
+  },
+  {
+    "en": "performance",
+    "ja": "業績/成果"
+  },
+  {
+    "en": "customer",
+    "ja": "顧客"
+  },
+  {
+    "en": "employee",
+    "ja": "従業員"
+  },
+  {
+    "en": "department",
+    "ja": "部門"
+  },
+  {
+    "en": "organization",
+    "ja": "組織"
+  },
+  {
+    "en": "headquarters",
+    "ja": "本社"
+  },
+  {
+    "en": "supplier",
+    "ja": "供給業者"
+  },
+  {
+    "en": "client",
+    "ja": "顧客/取引先"
+  },
+  {
+    "en": "contract",
+    "ja": "契約"
+  },
+  {
+    "en": "agreement",
+    "ja": "合意"
+  },
+  {
+    "en": "budget",
+    "ja": "予算"
+  },
+  {
+    "en": "cost-effective",
+    "ja": "費用対効果の高い"
+  },
+  {
+    "en": "productivity",
+    "ja": "生産性"
+  },
+  {
+    "en": "satisfaction",
+    "ja": "満足"
+  },
+  {
+    "en": "turnover",
+    "ja": "離職率/売上高"
+  },
+  {
+    "en": "partnership",
+    "ja": "提携"
+  },
+  {
+    "en": "market",
+    "ja": "市場"
+  },
+  {
+    "en": "market share",
+    "ja": "市場シェア"
+  },
+  {
+    "en": "competition",
+    "ja": "競争"
+  },
+  {
+    "en": "demand",
+    "ja": "需要"
+  },
+  {
+    "en": "supply",
+    "ja": "供給"
+  },
+  {
+    "en": "sales",
+    "ja": "売上"
+  },
+  {
+    "en": "distribution",
+    "ja": "流通"
+  },
+  {
+    "en": "promotion",
+    "ja": "販促"
+  },
+  {
+    "en": "advertisement",
+    "ja": "広告"
+  },
+  {
+    "en": "survey",
+    "ja": "調査"
+  },
+  {
+    "en": "analysis",
+    "ja": "分析"
+  },
+  {
+    "en": "report",
+    "ja": "報告"
+  },
+  {
+    "en": "proposal",
+    "ja": "提案"
+  },
+  {
+    "en": "recommendation",
+    "ja": "推薦"
+  },
+  {
+    "en": "decision",
+    "ja": "決定"
+  },
+  {
+    "en": "option",
+    "ja": "選択肢"
+  },
+  {
+    "en": "alternative",
+    "ja": "代替案"
+  },
+  {
+    "en": "solution",
+    "ja": "解決策"
+  },
+  {
+    "en": "benefit",
+    "ja": "利益/利点"
+  },
+  {
+    "en": "advantage",
+    "ja": "利点"
+  },
+  {
+    "en": "disadvantage",
+    "ja": "欠点"
+  },
+  {
+    "en": "challenge",
+    "ja": "課題"
+  },
+  {
+    "en": "environment",
+    "ja": "環境"
+  },
+  {
+    "en": "innovation",
+    "ja": "革新"
+  },
+  {
+    "en": "technology",
+    "ja": "技術"
+  },
+  {
+    "en": "system",
+    "ja": "システム"
+  },
+  {
+    "en": "operation",
+    "ja": "運営"
+  },
+  {
+    "en": "process",
+    "ja": "過程"
+  },
+  {
+    "en": "procedure",
+    "ja": "手順"
+  },
+  {
+    "en": "schedule",
+    "ja": "予定"
+  },
+  {
+    "en": "deadline",
+    "ja": "締切"
+  },
+  {
+    "en": "update",
+    "ja": "更新"
+  },
+  {
+    "en": "review",
+    "ja": "見直し"
+  },
+  {
+    "en": "approve",
+    "ja": "承認する"
+  },
+  {
+    "en": "reject",
+    "ja": "拒否する"
+  },
+  {
+    "en": "cancel",
+    "ja": "取消す"
+  },
+  {
+    "en": "reschedule",
+    "ja": "日程変更する"
+  },
+  {
+    "en": "refund",
+    "ja": "返金"
+  },
+  {
+    "en": "replace",
+    "ja": "交換する"
+  },
+  {
+    "en": "emergency",
+    "ja": "緊急事態"
+  },
+  {
+    "en": "damage",
+    "ja": "損害"
+  },
+  {
+    "en": "repair",
+    "ja": "修理する"
+  }
+]

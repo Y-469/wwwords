@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WordDrill - 英単語トレーニング</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #242836;
+  --border: #2e3345;
+  --text: #e4e6ef;
+  --text2: #8b8fa3;
+  --accent: #6c5ce7;
+  --accent2: #a29bfe;
+  --correct: #00b894;
+  --correct-bg: #00b89422;
+  --wrong: #e17055;
+  --wrong-bg: #e1705522;
+  --warning: #fdcb6e;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* ===== Layout ===== */
+.app { max-width: 520px; margin: 0 auto; padding: 16px; min-height: 100dvh; display: flex; flex-direction: column; }
+
+/* ===== Header ===== */
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0; margin-bottom: 8px;
+}
+.header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.02em; }
+.header h1 span { color: var(--accent2); }
+.header-actions { display: flex; gap: 8px; }
+.icon-btn {
+  background: var(--surface); border: 1px solid var(--border); color: var(--text2);
+  width: 36px; height: 36px; border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: all 0.15s;
+}
+.icon-btn:hover { background: var(--surface2); color: var(--text); }
+.icon-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ===== Navigation Tabs ===== */
+.nav {
+  display: flex; gap: 4px; background: var(--surface); border-radius: var(--radius);
+  padding: 4px; margin-bottom: 16px;
+}
+.nav-btn {
+  flex: 1; padding: 10px 8px; border: none; background: transparent;
+  color: var(--text2); font-size: 0.8rem; font-weight: 600; border-radius: var(--radius-sm);
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.nav-btn.active { background: var(--accent); color: #fff; }
+.nav-btn:hover:not(.active) { color: var(--text); }
+
+/* ===== Screens ===== */
+.screen { display: none; flex: 1; flex-direction: column; }
+.screen.active { display: flex; }
+
+/* ===== Quiz Card ===== */
+.quiz-progress {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+}
+.progress-bar {
+  flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 3px; transition: width 0.3s ease;
+}
+.progress-text { font-size: 0.75rem; color: var(--text2); font-weight: 600; white-space: nowrap; }
+
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 32px 24px; text-align: center;
+  margin-bottom: 16px; position: relative; min-height: 140px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.card-label {
+  position: absolute; top: 12px; left: 16px;
+  font-size: 0.65rem; color: var(--text2); text-transform: uppercase;
+  letter-spacing: 0.08em; font-weight: 600;
+}
+.card-word {
+  font-size: 2rem; font-weight: 700; letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+.card-sub { font-size: 0.85rem; color: var(--text2); }
+
+/* ===== Choices ===== */
+.choices { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.choice-btn {
+  padding: 14px 18px; background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text); font-size: 0.95rem;
+  cursor: pointer; transition: all 0.15s; text-align: left;
+  display: flex; align-items: center; gap: 12px;
+}
+.choice-btn .choice-key {
+  width: 26px; height: 26px; border-radius: 6px; background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 700; color: var(--text2); flex-shrink: 0;
+}
+.choice-btn:hover:not(.disabled) { border-color: var(--accent); background: var(--surface2); }
+.choice-btn.correct { border-color: var(--correct); background: var(--correct-bg); }
+.choice-btn.correct .choice-key { background: var(--correct); color: #fff; }
+.choice-btn.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+.choice-btn.wrong .choice-key { background: var(--wrong); color: #fff; }
+.choice-btn.disabled { pointer-events: none; opacity: 0.5; }
+.choice-btn.disabled.correct { opacity: 1; }
+
+/* ===== Writing Mode ===== */
+.writing-input-area { margin-bottom: 16px; }
+.writing-input {
+  width: 100%; padding: 14px 18px; background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text); font-size: 1.1rem;
+  outline: none; transition: border-color 0.2s; font-family: inherit;
+}
+.writing-input:focus { border-color: var(--accent); }
+.writing-input.correct { border-color: var(--correct); background: var(--correct-bg); }
+.writing-input.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+
+.writing-hint {
+  margin-top: 8px; font-size: 0.8rem; color: var(--text2);
+  min-height: 1.2em;
+}
+.writing-answer {
+  margin-top: 8px; padding: 12px 16px; background: var(--surface2);
+  border-radius: var(--radius-sm); font-size: 0.95rem;
+}
+.writing-answer strong { color: var(--accent2); }
+
+/* ===== Action Buttons ===== */
+.actions { display: flex; gap: 8px; margin-top: auto; padding-top: 12px; }
+.btn {
+  flex: 1; padding: 14px; border: none; border-radius: var(--radius-sm);
+  font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent2); }
+.btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--border); }
+.btn:disabled { opacity: 0.4; cursor: default; }
+
+/* ===== Results Screen ===== */
+.results {
+  text-align: center; padding: 24px 0;
+}
+.results-score {
+  font-size: 4rem; font-weight: 800; color: var(--accent2);
+  line-height: 1;
+}
+.results-label { font-size: 0.85rem; color: var(--text2); margin-top: 4px; }
+.results-stats {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+  margin: 24px 0;
+}
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 16px 8px;
+}
+.stat-value { font-size: 1.4rem; font-weight: 700; }
+.stat-value.correct-color { color: var(--correct); }
+.stat-value.wrong-color { color: var(--wrong); }
+.stat-label { font-size: 0.7rem; color: var(--text2); margin-top: 2px; }
+
+.wrong-words-list {
+  text-align: left; margin: 16px 0;
+}
+.wrong-words-list h3 {
+  font-size: 0.85rem; color: var(--wrong); margin-bottom: 8px;
+}
+.wrong-word-item {
+  padding: 10px 14px; background: var(--surface); border-radius: var(--radius-sm);
+  margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.9rem;
+}
+.wrong-word-item .en { font-weight: 600; }
+.wrong-word-item .ja { color: var(--text2); font-size: 0.8rem; }
+
+/* ===== Dashboard ===== */
+.dash-section { margin-bottom: 20px; }
+.dash-section h2 { font-size: 0.9rem; font-weight: 700; margin-bottom: 10px; }
+.dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.dash-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+}
+.dash-card .value { font-size: 1.8rem; font-weight: 800; }
+.dash-card .label { font-size: 0.7rem; color: var(--text2); margin-top: 2px; }
+.dash-card.accent .value { color: var(--accent2); }
+.dash-card.green .value { color: var(--correct); }
+.dash-card.red .value { color: var(--wrong); }
+.dash-card.yellow .value { color: var(--warning); }
+
+/* Calendar heatmap */
+.calendar {
+  display: flex; gap: 3px; flex-wrap: wrap; padding: 8px 0;
+}
+.cal-day {
+  width: 18px; height: 18px; border-radius: 3px;
+  background: var(--surface2); position: relative;
+}
+.cal-day.lv1 { background: #6c5ce744; }
+.cal-day.lv2 { background: #6c5ce788; }
+.cal-day.lv3 { background: #6c5ce7cc; }
+.cal-day.lv4 { background: #6c5ce7; }
+.cal-day-tooltip {
+  display: none; position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%);
+  background: var(--surface); border: 1px solid var(--border); padding: 4px 8px;
+  border-radius: 4px; font-size: 0.65rem; white-space: nowrap; z-index: 10;
+  color: var(--text);
+}
+.cal-day:hover .cal-day-tooltip { display: block; }
+
+/* Word mastery list */
+.word-list { max-height: 400px; overflow-y: auto; }
+.word-row {
+  display: flex; align-items: center; padding: 10px 12px;
+  border-bottom: 1px solid var(--border); gap: 10px;
+}
+.word-row:last-child { border-bottom: none; }
+.word-mastery {
+  width: 40px; height: 6px; background: var(--surface2); border-radius: 3px;
+  overflow: hidden; flex-shrink: 0;
+}
+.word-mastery-fill { height: 100%; border-radius: 3px; }
+.word-mastery-fill.low { background: var(--wrong); }
+.word-mastery-fill.mid { background: var(--warning); }
+.word-mastery-fill.high { background: var(--correct); }
+.word-en { font-weight: 600; font-size: 0.85rem; min-width: 100px; }
+.word-ja { font-size: 0.8rem; color: var(--text2); flex: 1; }
+.word-acc { font-size: 0.75rem; color: var(--text2); font-weight: 600; }
+
+/* ===== Setup / Mode Select ===== */
+.mode-select { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.mode-card {
+  padding: 16px 18px; background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius); cursor: pointer; transition: all 0.15s;
+}
+.mode-card:hover { border-color: var(--accent); }
+.mode-card.selected { border-color: var(--accent); background: #6c5ce711; }
+.mode-card h3 { font-size: 0.95rem; margin-bottom: 4px; }
+.mode-card p { font-size: 0.75rem; color: var(--text2); }
+
+.range-group { margin-bottom: 16px; }
+.range-group label {
+  display: block; font-size: 0.8rem; color: var(--text2); margin-bottom: 6px;
+}
+.range-row { display: flex; gap: 8px; align-items: center; }
+.range-row select {
+  flex: 1; padding: 10px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text); font-size: 0.9rem;
+}
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 12px 24px; border-radius: var(--radius); font-size: 0.85rem;
+  opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100;
+}
+.toast.show { opacity: 1; }
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ===== Responsive ===== */
+@media (max-width: 400px) {
+  .card-word { font-size: 1.6rem; }
+  .results-score { font-size: 3rem; }
+}
+
+/* ===== Animations ===== */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation: slideIn 0.25s ease; }
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+.pop { animation: pop 0.2s ease; }
+
+/* Streak flame effect */
+.streak-display {
+  display: flex; align-items: center; gap: 4px; font-size: 0.8rem;
+  color: var(--warning); font-weight: 700;
+}
+
+/* ===== Sync Modal ===== */
+.sync-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  z-index: 50; align-items: center; justify-content: center; padding: 16px;
+}
+.sync-overlay.open { display: flex; }
+.sync-modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px; max-width: 400px; width: 100%;
+}
+.sync-modal h2 { font-size: 1rem; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+.sync-modal .close-btn { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 1.4rem; line-height: 1; }
+.sync-field { margin-bottom: 12px; }
+.sync-field label { display: block; font-size: 0.75rem; color: var(--text2); margin-bottom: 4px; }
+.sync-field input {
+  width: 100%; padding: 10px; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text); font-size: 0.85rem; outline: none;
+}
+.sync-field input:focus { border-color: var(--accent); }
+.sync-note { font-size: 0.7rem; color: var(--text2); margin-bottom: 16px; line-height: 1.5; }
+.sync-actions { display: flex; gap: 8px; }
+.sync-status { margin-top: 12px; text-align: center; font-size: 0.75rem; color: var(--text2); }
+.sync-status .connected { color: var(--correct); }
+.sync-status .error { color: var(--wrong); }
+.icon-btn.synced { background: var(--correct); color: #fff; border-color: var(--correct); }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <h1>Word<span>Drill</span></h1>
+    <div class="header-actions">
+      <div class="streak-display" id="streakDisplay" style="display:none">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 23c-4.97 0-9-3.58-9-8 0-3.07 2.31-6.64 4.5-9 .37-.4 1.04-.07 1 .48-.11 1.57.52 3.27 1.76 4.4.2.18.52.04.52-.24 0-2.08 1.07-4.46 2.76-6.39.34-.39 1-.09 1 .44v3.4c0 1.42.82 2.71 2.12 3.12.58.18 1.08-.36.84-.92-.68-1.6-.29-3.34.7-4.6.26-.33.82-.2.88.2C19.55 9.5 21 12.74 21 15c0 4.42-4.03 8-9 8z"/></svg>
+        <span id="streakCount">0</span>
+      </div>
+      <button class="icon-btn" id="syncBtn" onclick="openSyncModal()" title="クラウド同期">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>
+      </button>
+      <button class="icon-btn" onclick="exportData()" title="データ書き出し">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      </button>
+      <button class="icon-btn" onclick="resetConfirm()" title="データリセット">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="nav">
+    <button class="nav-btn active" onclick="showScreen('home')">ホーム</button>
+    <button class="nav-btn" onclick="showScreen('quiz')">クイズ</button>
+    <button class="nav-btn" onclick="showScreen('writing')">記述</button>
+    <button class="nav-btn" onclick="showScreen('dashboard')">記録</button>
+  </div>
+
+  <!-- ===== HOME SCREEN ===== -->
+  <div class="screen active" id="screen-home">
+    <div class="dash-section">
+      <h2>今日の学習</h2>
+      <div class="dash-grid">
+        <div class="dash-card accent">
+          <div class="value" id="homeTodayCount">0</div>
+          <div class="label">学習した単語</div>
+        </div>
+        <div class="dash-card green">
+          <div class="value" id="homeTodayAcc">-</div>
+          <div class="label">正答率</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dash-section">
+      <h2>モード選択</h2>
+      <div class="mode-select">
+        <div class="mode-card" onclick="startQuiz('all')">
+          <h3>4択クイズ - 全単語</h3>
+          <p>94語からランダム出題。英単語→日本語の意味を選択</p>
+        </div>
+        <div class="mode-card" onclick="startQuiz('weak')">
+          <h3>4択クイズ - 苦手復習</h3>
+          <p>正答率の低い単語を優先して出題</p>
+        </div>
+        <div class="mode-card" onclick="startQuiz('unseen')">
+          <h3>4択クイズ - 未学習</h3>
+          <p>まだ一度も出題されていない単語</p>
+        </div>
+        <div class="mode-card" onclick="startWriting('all')">
+          <h3>記述モード - 全単語</h3>
+          <p>日本語の意味を見て英単語をタイプ</p>
+        </div>
+        <div class="mode-card" onclick="startWriting('weak')">
+          <h3>記述モード - 苦手復習</h3>
+          <p>間違えた単語のスペル練習</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="dash-section">
+      <h2>単語数設定</h2>
+      <div class="range-group">
+        <label>1セッションの出題数</label>
+        <div class="range-row">
+          <select id="questionCount">
+            <option value="10">10問</option>
+            <option value="20" selected>20問</option>
+            <option value="30">30問</option>
+            <option value="50">50問</option>
+            <option value="94">全94問</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== QUIZ SCREEN ===== -->
+  <div class="screen" id="screen-quiz">
+    <!-- Active quiz -->
+    <div id="quizActive">
+      <div class="quiz-progress">
+        <div class="progress-bar"><div class="progress-fill" id="quizProgressFill"></div></div>
+        <div class="progress-text" id="quizProgressText">0 / 20</div>
+      </div>
+      <div class="card animate-in" id="quizCard">
+        <div class="card-label">English</div>
+        <div class="card-word" id="quizWord">implement</div>
+      </div>
+      <div class="choices" id="quizChoices"></div>
+    </div>
+    <!-- Quiz results -->
+    <div id="quizResults" style="display:none">
+      <div class="results animate-in">
+        <div class="results-score" id="quizScore">85%</div>
+        <div class="results-label">正答率</div>
+        <div class="results-stats">
+          <div class="stat-card">
+            <div class="stat-value" id="quizTotal">20</div>
+            <div class="stat-label">出題数</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value correct-color" id="quizCorrectCount">17</div>
+            <div class="stat-label">正解</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value wrong-color" id="quizWrongCount">3</div>
+            <div class="stat-label">不正解</div>
+          </div>
+        </div>
+        <div class="wrong-words-list" id="quizWrongList"></div>
+        <div class="actions">
+          <button class="btn btn-secondary" onclick="showScreen('home')">ホームに戻る</button>
+          <button class="btn btn-primary" onclick="retryWrong('quiz')">間違えた単語を復習</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== WRITING SCREEN ===== -->
+  <div class="screen" id="screen-writing">
+    <div id="writingActive">
+      <div class="quiz-progress">
+        <div class="progress-bar"><div class="progress-fill" id="writeProgressFill"></div></div>
+        <div class="progress-text" id="writeProgressText">0 / 20</div>
+      </div>
+      <div class="card animate-in" id="writeCard">
+        <div class="card-label">日本語</div>
+        <div class="card-word" id="writeWord" style="font-size:1.5rem">実行する/導入する</div>
+      </div>
+      <div class="writing-input-area">
+        <input type="text" class="writing-input" id="writeInput" placeholder="英単語を入力..." autocomplete="off" autocapitalize="off" spellcheck="false">
+        <div class="writing-hint" id="writeHint"></div>
+        <div class="writing-answer" id="writeAnswer" style="display:none"></div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-secondary" id="writeHintBtn" onclick="showWriteHint()">ヒント</button>
+        <button class="btn btn-primary" id="writeSubmitBtn" onclick="submitWriting()">回答する</button>
+      </div>
+    </div>
+    <div id="writingResults" style="display:none">
+      <div class="results animate-in">
+        <div class="results-score" id="writeScore">85%</div>
+        <div class="results-label">正答率</div>
+        <div class="results-stats">
+          <div class="stat-card">
+            <div class="stat-value" id="writeTotal">20</div>
+            <div class="stat-label">出題数</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value correct-color" id="writeCorrectCount">17</div>
+            <div class="stat-label">正解</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value wrong-color" id="writeWrongCount">3</div>
+            <div class="stat-label">不正解</div>
+          </div>
+        </div>
+        <div class="wrong-words-list" id="writeWrongList"></div>
+        <div class="actions">
+          <button class="btn btn-secondary" onclick="showScreen('home')">ホームに戻る</button>
+          <button class="btn btn-primary" onclick="retryWrong('writing')">間違えた単語を復習</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DASHBOARD SCREEN ===== -->
+  <div class="screen" id="screen-dashboard">
+    <div class="dash-section">
+      <h2>学習カレンダー（過去30日）</h2>
+      <div class="calendar" id="calendar"></div>
+    </div>
+    <div class="dash-section">
+      <h2>全体の統計</h2>
+      <div class="dash-grid">
+        <div class="dash-card accent">
+          <div class="value" id="dashTotalSessions">0</div>
+          <div class="label">総セッション数</div>
+        </div>
+        <div class="dash-card green">
+          <div class="value" id="dashOverallAcc">-</div>
+          <div class="label">全体正答率</div>
+        </div>
+        <div class="dash-card yellow">
+          <div class="value" id="dashStreak">0</div>
+          <div class="label">連続学習日数</div>
+        </div>
+        <div class="dash-card">
+          <div class="value" id="dashMastered">0</div>
+          <div class="label">習得済み（80%↑）</div>
+        </div>
+      </div>
+    </div>
+    <div class="dash-section">
+      <h2>単語一覧（正答率順）</h2>
+      <div class="word-list" id="wordList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Sync Modal -->
+<div class="sync-overlay" id="syncModal">
+  <div class="sync-modal">
+    <h2>クラウド同期設定 <button class="close-btn" onclick="closeSyncModal()">&times;</button></h2>
+    <div class="sync-field">
+      <label>Database URL</label>
+      <input id="syncDbUrl" type="text" placeholder="https://xxx-default-rtdb.firebaseio.com">
+    </div>
+    <div class="sync-field">
+      <label>API Key</label>
+      <input id="syncApiKey" type="text" placeholder="AIzaSy...">
+    </div>
+    <div class="sync-field">
+      <label>同期ID（合言葉）</label>
+      <input id="syncIdInput" type="text" placeholder="好きな合言葉を入力">
+    </div>
+    <div class="sync-note">
+      同じFirebaseプロジェクトと合言葉を設定すれば、PC・スマホ間でデータが自動同期されます。
+    </div>
+    <div class="sync-actions">
+      <button onclick="disconnectSync()" class="btn btn-secondary" style="flex:1">解除</button>
+      <button onclick="startSync()" class="btn btn-primary" style="flex:1">同期開始</button>
+    </div>
+    <div class="sync-status">ステータス: <span id="syncStatus">未接続</span></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-database-compat.js"></script>
+<script>
+// ===== WORD DATA =====
+const WORDS = [
+  {"en":"implement","ja":"実行する/導入する"},
+  {"en":"enhance","ja":"高める/強化する"},
+  {"en":"sustainability","ja":"持続可能性"},
+  {"en":"financial","ja":"財務の/経済的な"},
+  {"en":"pressure","ja":"圧力/プレッシャー"},
+  {"en":"decline","ja":"減少する/衰退"},
+  {"en":"revenue","ja":"収益"},
+  {"en":"profit","ja":"利益"},
+  {"en":"investment","ja":"投資"},
+  {"en":"competitive","ja":"競争力のある"},
+  {"en":"efficient","ja":"効率的な"},
+  {"en":"strategy","ja":"戦略"},
+  {"en":"policy","ja":"方針"},
+  {"en":"impact","ja":"影響"},
+  {"en":"significant","ja":"重要な/かなりの"},
+  {"en":"approach","ja":"方法/取り組み"},
+  {"en":"maintain","ja":"維持する"},
+  {"en":"expand","ja":"拡大する"},
+  {"en":"reduce","ja":"減らす"},
+  {"en":"increase","ja":"増やす/増える"},
+  {"en":"launch","ja":"開始する/発売する"},
+  {"en":"introduce","ja":"導入する"},
+  {"en":"consider","ja":"検討する"},
+  {"en":"improve","ja":"改善する"},
+  {"en":"develop","ja":"発展させる"},
+  {"en":"manage","ja":"管理する/何とかする"},
+  {"en":"achieve","ja":"達成する"},
+  {"en":"require","ja":"必要とする"},
+  {"en":"provide","ja":"提供する"},
+  {"en":"respond","ja":"対応する"},
+  {"en":"complaint","ja":"苦情"},
+  {"en":"issue","ja":"問題"},
+  {"en":"delay","ja":"遅延"},
+  {"en":"risk","ja":"リスク"},
+  {"en":"opportunity","ja":"機会"},
+  {"en":"growth","ja":"成長"},
+  {"en":"performance","ja":"業績/成果"},
+  {"en":"customer","ja":"顧客"},
+  {"en":"employee","ja":"従業員"},
+  {"en":"department","ja":"部門"},
+  {"en":"organization","ja":"組織"},
+  {"en":"headquarters","ja":"本社"},
+  {"en":"supplier","ja":"供給業者"},
+  {"en":"client","ja":"顧客/取引先"},
+  {"en":"contract","ja":"契約"},
+  {"en":"agreement","ja":"合意"},
+  {"en":"budget","ja":"予算"},
+  {"en":"cost-effective","ja":"費用対効果の高い"},
+  {"en":"productivity","ja":"生産性"},
+  {"en":"satisfaction","ja":"満足"},
+  {"en":"turnover","ja":"離職率/売上高"},
+  {"en":"partnership","ja":"提携"},
+  {"en":"market","ja":"市場"},
+  {"en":"market share","ja":"市場シェア"},
+  {"en":"competition","ja":"競争"},
+  {"en":"demand","ja":"需要"},
+  {"en":"supply","ja":"供給"},
+  {"en":"sales","ja":"売上"},
+  {"en":"distribution","ja":"流通"},
+  {"en":"promotion","ja":"販促"},
+  {"en":"advertisement","ja":"広告"},
+  {"en":"survey","ja":"調査"},
+  {"en":"analysis","ja":"分析"},
+  {"en":"report","ja":"報告"},
+  {"en":"proposal","ja":"提案"},
+  {"en":"recommendation","ja":"推薦"},
+  {"en":"decision","ja":"決定"},
+  {"en":"option","ja":"選択肢"},
+  {"en":"alternative","ja":"代替案"},
+  {"en":"solution","ja":"解決策"},
+  {"en":"benefit","ja":"利益/利点"},
+  {"en":"advantage","ja":"利点"},
+  {"en":"disadvantage","ja":"欠点"},
+  {"en":"challenge","ja":"課題"},
+  {"en":"environment","ja":"環境"},
+  {"en":"innovation","ja":"革新"},
+  {"en":"technology","ja":"技術"},
+  {"en":"system","ja":"システム"},
+  {"en":"operation","ja":"運営"},
+  {"en":"process","ja":"過程"},
+  {"en":"procedure","ja":"手順"},
+  {"en":"schedule","ja":"予定"},
+  {"en":"deadline","ja":"締切"},
+  {"en":"update","ja":"更新"},
+  {"en":"review","ja":"見直し"},
+  {"en":"approve","ja":"承認する"},
+  {"en":"reject","ja":"拒否する"},
+  {"en":"cancel","ja":"取消す"},
+  {"en":"reschedule","ja":"日程変更する"},
+  {"en":"refund","ja":"返金"},
+  {"en":"replace","ja":"交換する"},
+  {"en":"emergency","ja":"緊急事態"},
+  {"en":"damage","ja":"損害"},
+  {"en":"repair","ja":"修理する"}
+];
+
+// ===== STATE =====
+const STORAGE_KEY = 'worddrill_data';
+let state = loadState();
+let currentSession = null;
+
+function defaultState() {
+  return {
+    wordStats: {},  // { "implement": { correct: 0, wrong: 0, lastSeen: null } }
+    dailyLog: {},   // { "2025-01-15": { sessions: 1, correct: 10, wrong: 3, words: ["implement",...] } }
+    settings: { questionCount: 20 }
+  };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return defaultState();
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  pushToCloud();
+}
+
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// ===== NAVIGATION =====
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach((b, i) => {
+    b.classList.toggle('active', ['home','quiz','writing','dashboard'][i] === name);
+  });
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'home') renderHome();
+}
+
+// ===== HOME =====
+function renderHome() {
+  const d = state.dailyLog[today()] || { correct: 0, wrong: 0, words: [] };
+  document.getElementById('homeTodayCount').textContent = d.words ? d.words.length : 0;
+  const total = d.correct + d.wrong;
+  document.getElementById('homeTodayAcc').textContent = total > 0 ? Math.round(d.correct / total * 100) + '%' : '-';
+  updateStreak();
+}
+
+function updateStreak() {
+  let streak = 0;
+  const d = new Date();
+  // Check if today has activity, if not start from yesterday
+  if (!state.dailyLog[today()]) {
+    d.setDate(d.getDate() - 1);
+  }
+  while (true) {
+    const key = d.toISOString().slice(0, 10);
+    if (state.dailyLog[key]) {
+      streak++;
+      d.setDate(d.getDate() - 1);
+    } else break;
+  }
+  const el = document.getElementById('streakDisplay');
+  if (streak > 0) {
+    el.style.display = 'flex';
+    document.getElementById('streakCount').textContent = streak;
+  } else {
+    el.style.display = 'none';
+  }
+  return streak;
+}
+
+// ===== QUIZ =====
+function startQuiz(mode) {
+  const count = parseInt(document.getElementById('questionCount').value);
+  let pool = [...WORDS];
+
+  if (mode === 'weak') {
+    pool = pool.filter(w => {
+      const s = state.wordStats[w.en];
+      return s && s.wrong > 0 && (s.correct / (s.correct + s.wrong)) < 0.8;
+    });
+    if (pool.length === 0) { toast('苦手な単語がまだありません'); return; }
+  } else if (mode === 'unseen') {
+    pool = pool.filter(w => !state.wordStats[w.en]);
+    if (pool.length === 0) { toast('全単語学習済みです！'); return; }
+  }
+
+  shuffle(pool);
+  pool = pool.slice(0, Math.min(count, pool.length));
+
+  currentSession = {
+    type: 'quiz',
+    questions: pool,
+    current: 0,
+    correct: 0,
+    wrong: 0,
+    wrongWords: [],
+    answered: false
+  };
+
+  showScreen('quiz');
+  document.getElementById('quizActive').style.display = '';
+  document.getElementById('quizResults').style.display = 'none';
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  const s = currentSession;
+  if (s.current >= s.questions.length) { showQuizResults(); return; }
+
+  s.answered = false;
+  const word = s.questions[s.current];
+  const pct = (s.current / s.questions.length * 100).toFixed(0);
+  document.getElementById('quizProgressFill').style.width = pct + '%';
+  document.getElementById('quizProgressText').textContent = `${s.current + 1} / ${s.questions.length}`;
+
+  const card = document.getElementById('quizCard');
+  card.classList.remove('animate-in');
+  void card.offsetWidth;
+  card.classList.add('animate-in');
+  document.getElementById('quizWord').textContent = word.en;
+
+  // Generate 4 choices
+  const choices = [word];
+  const others = WORDS.filter(w => w.en !== word.en);
+  shuffle(others);
+  for (let i = 0; choices.length < 4 && i < others.length; i++) {
+    // Avoid duplicates in Japanese meaning
+    if (!choices.some(c => c.ja === others[i].ja)) {
+      choices.push(others[i]);
+    }
+  }
+  shuffle(choices);
+
+  const keys = ['A', 'B', 'C', 'D'];
+  const container = document.getElementById('quizChoices');
+  container.innerHTML = choices.map((c, i) => `
+    <button class="choice-btn" onclick="answerQuiz(this, '${escape(c.en)}', '${escape(word.en)}')">
+      <span class="choice-key">${keys[i]}</span>
+      <span>${c.ja}</span>
+    </button>
+  `).join('');
+}
+
+function escape(s) { return s.replace(/'/g, "\\'"); }
+
+function answerQuiz(btn, chosen, correct) {
+  if (currentSession.answered) return;
+  currentSession.answered = true;
+
+  const word = currentSession.questions[currentSession.current];
+  const isCorrect = chosen === correct;
+  const buttons = document.querySelectorAll('.choice-btn');
+
+  buttons.forEach(b => {
+    b.classList.add('disabled');
+    if (b.querySelector('span:last-child').textContent === word.ja) {
+      b.classList.add('correct');
+    }
+  });
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    currentSession.correct++;
+  } else {
+    btn.classList.add('wrong');
+    currentSession.wrong++;
+    currentSession.wrongWords.push(word);
+  }
+
+  recordWord(word.en, isCorrect);
+
+  setTimeout(() => {
+    currentSession.current++;
+    renderQuizQuestion();
+  }, isCorrect ? 600 : 1200);
+}
+
+function showQuizResults() {
+  document.getElementById('quizActive').style.display = 'none';
+  document.getElementById('quizResults').style.display = '';
+
+  const s = currentSession;
+  const pct = Math.round(s.correct / s.questions.length * 100);
+  document.getElementById('quizScore').textContent = pct + '%';
+  document.getElementById('quizTotal').textContent = s.questions.length;
+  document.getElementById('quizCorrectCount').textContent = s.correct;
+  document.getElementById('quizWrongCount').textContent = s.wrong;
+
+  const listEl = document.getElementById('quizWrongList');
+  if (s.wrongWords.length > 0) {
+    listEl.innerHTML = '<h3>間違えた単語</h3>' + s.wrongWords.map(w =>
+      `<div class="wrong-word-item"><span class="en">${w.en}</span><span class="ja">${w.ja}</span></div>`
+    ).join('');
+  } else {
+    listEl.innerHTML = '<h3 style="color:var(--correct)">パーフェクト！全問正解！</h3>';
+  }
+
+  recordSession();
+}
+
+// ===== WRITING =====
+function startWriting(mode) {
+  const count = parseInt(document.getElementById('questionCount').value);
+  let pool = [...WORDS];
+
+  if (mode === 'weak') {
+    pool = pool.filter(w => {
+      const s = state.wordStats[w.en];
+      return s && s.wrong > 0;
+    });
+    if (pool.length === 0) { toast('苦手な単語がまだありません'); return; }
+  }
+
+  shuffle(pool);
+  pool = pool.slice(0, Math.min(count, pool.length));
+
+  currentSession = {
+    type: 'writing',
+    questions: pool,
+    current: 0,
+    correct: 0,
+    wrong: 0,
+    wrongWords: [],
+    answered: false,
+    hintLevel: 0
+  };
+
+  showScreen('writing');
+  document.getElementById('writingActive').style.display = '';
+  document.getElementById('writingResults').style.display = 'none';
+  renderWriteQuestion();
+}
+
+function renderWriteQuestion() {
+  const s = currentSession;
+  if (s.current >= s.questions.length) { showWriteResults(); return; }
+
+  s.answered = false;
+  s.hintLevel = 0;
+  const word = s.questions[s.current];
+  const pct = (s.current / s.questions.length * 100).toFixed(0);
+  document.getElementById('writeProgressFill').style.width = pct + '%';
+  document.getElementById('writeProgressText').textContent = `${s.current + 1} / ${s.questions.length}`;
+
+  const card = document.getElementById('writeCard');
+  card.classList.remove('animate-in');
+  void card.offsetWidth;
+  card.classList.add('animate-in');
+  document.getElementById('writeWord').textContent = word.ja;
+
+  const input = document.getElementById('writeInput');
+  input.value = '';
+  input.className = 'writing-input';
+  input.disabled = false;
+  input.focus();
+  document.getElementById('writeHint').textContent = '';
+  document.getElementById('writeAnswer').style.display = 'none';
+  document.getElementById('writeSubmitBtn').textContent = '回答する';
+  document.getElementById('writeHintBtn').style.display = '';
+}
+
+function showWriteHint() {
+  const s = currentSession;
+  if (s.answered) return;
+  const word = s.questions[s.current].en;
+  s.hintLevel++;
+
+  let hint = '';
+  if (s.hintLevel === 1) {
+    hint = `${word.length}文字`;
+  } else if (s.hintLevel === 2) {
+    hint = word[0] + '_'.repeat(word.length - 1);
+  } else {
+    // Show every other letter
+    hint = word.split('').map((c, i) => i % 2 === 0 ? c : '_').join('');
+  }
+  document.getElementById('writeHint').textContent = 'ヒント: ' + hint;
+}
+
+function submitWriting() {
+  const s = currentSession;
+  if (!s) return;
+
+  if (s.answered) {
+    s.current++;
+    renderWriteQuestion();
+    return;
+  }
+
+  const input = document.getElementById('writeInput');
+  const userAnswer = input.value.trim().toLowerCase();
+  const word = s.questions[s.current];
+  const correct = word.en.toLowerCase();
+
+  if (!userAnswer) { input.focus(); return; }
+
+  s.answered = true;
+  input.disabled = true;
+
+  const isCorrect = userAnswer === correct;
+  input.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  if (isCorrect) {
+    s.correct++;
+    document.getElementById('writeAnswer').style.display = 'none';
+  } else {
+    s.wrong++;
+    s.wrongWords.push(word);
+    const answerEl = document.getElementById('writeAnswer');
+    answerEl.style.display = '';
+    answerEl.innerHTML = `正解: <strong>${word.en}</strong>`;
+  }
+
+  recordWord(word.en, isCorrect);
+  document.getElementById('writeSubmitBtn').textContent = '次の問題';
+  document.getElementById('writeHintBtn').style.display = 'none';
+}
+
+function showWriteResults() {
+  document.getElementById('writingActive').style.display = 'none';
+  document.getElementById('writingResults').style.display = '';
+
+  const s = currentSession;
+  const pct = Math.round(s.correct / s.questions.length * 100);
+  document.getElementById('writeScore').textContent = pct + '%';
+  document.getElementById('writeTotal').textContent = s.questions.length;
+  document.getElementById('writeCorrectCount').textContent = s.correct;
+  document.getElementById('writeWrongCount').textContent = s.wrong;
+
+  const listEl = document.getElementById('writeWrongList');
+  if (s.wrongWords.length > 0) {
+    listEl.innerHTML = '<h3>間違えた単語</h3>' + s.wrongWords.map(w =>
+      `<div class="wrong-word-item"><span class="en">${w.en}</span><span class="ja">${w.ja}</span></div>`
+    ).join('');
+  } else {
+    listEl.innerHTML = '<h3 style="color:var(--correct)">パーフェクト！全問正解！</h3>';
+  }
+
+  recordSession();
+}
+
+// ===== RETRY WRONG =====
+function retryWrong(mode) {
+  if (!currentSession || currentSession.wrongWords.length === 0) return;
+  const wrongWords = [...currentSession.wrongWords];
+
+  if (mode === 'quiz') {
+    currentSession = {
+      type: 'quiz', questions: wrongWords, current: 0,
+      correct: 0, wrong: 0, wrongWords: [], answered: false
+    };
+    document.getElementById('quizActive').style.display = '';
+    document.getElementById('quizResults').style.display = 'none';
+    renderQuizQuestion();
+  } else {
+    currentSession = {
+      type: 'writing', questions: wrongWords, current: 0,
+      correct: 0, wrong: 0, wrongWords: [], answered: false, hintLevel: 0
+    };
+    document.getElementById('writingActive').style.display = '';
+    document.getElementById('writingResults').style.display = 'none';
+    renderWriteQuestion();
+  }
+}
+
+// ===== RECORD =====
+function recordWord(en, isCorrect) {
+  if (!state.wordStats[en]) {
+    state.wordStats[en] = { correct: 0, wrong: 0, lastSeen: null };
+  }
+  const ws = state.wordStats[en];
+  if (isCorrect) ws.correct++; else ws.wrong++;
+  ws.lastSeen = today();
+
+  const d = today();
+  if (!state.dailyLog[d]) {
+    state.dailyLog[d] = { sessions: 0, correct: 0, wrong: 0, words: [] };
+  }
+  const dl = state.dailyLog[d];
+  if (isCorrect) dl.correct++; else dl.wrong++;
+  if (!dl.words.includes(en)) dl.words.push(en);
+
+  saveState();
+}
+
+function recordSession() {
+  const d = today();
+  if (!state.dailyLog[d]) {
+    state.dailyLog[d] = { sessions: 0, correct: 0, wrong: 0, words: [] };
+  }
+  state.dailyLog[d].sessions++;
+  saveState();
+}
+
+// ===== DASHBOARD =====
+function renderDashboard() {
+  // Calendar
+  const cal = document.getElementById('calendar');
+  cal.innerHTML = '';
+  const now = new Date();
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const log = state.dailyLog[key];
+    let lvl = 0;
+    if (log) {
+      const count = log.words ? log.words.length : 0;
+      if (count >= 50) lvl = 4;
+      else if (count >= 30) lvl = 3;
+      else if (count >= 10) lvl = 2;
+      else if (count > 0) lvl = 1;
+    }
+    const dayEl = document.createElement('div');
+    dayEl.className = 'cal-day' + (lvl ? ' lv' + lvl : '');
+    const tipText = log ? `${key}: ${log.words ? log.words.length : 0}語` : `${key}: 未学習`;
+    dayEl.innerHTML = `<div class="cal-day-tooltip">${tipText}</div>`;
+    cal.appendChild(dayEl);
+  }
+
+  // Stats
+  let totalSessions = 0, totalCorrect = 0, totalWrong = 0;
+  Object.values(state.dailyLog).forEach(d => {
+    totalSessions += d.sessions || 0;
+    totalCorrect += d.correct || 0;
+    totalWrong += d.wrong || 0;
+  });
+
+  document.getElementById('dashTotalSessions').textContent = totalSessions;
+  const totalAttempts = totalCorrect + totalWrong;
+  document.getElementById('dashOverallAcc').textContent = totalAttempts > 0
+    ? Math.round(totalCorrect / totalAttempts * 100) + '%' : '-';
+  document.getElementById('dashStreak').textContent = updateStreak();
+
+  // Mastered count
+  let mastered = 0;
+  WORDS.forEach(w => {
+    const s = state.wordStats[w.en];
+    if (s && (s.correct + s.wrong) >= 3 && s.correct / (s.correct + s.wrong) >= 0.8) mastered++;
+  });
+  document.getElementById('dashMastered').textContent = mastered;
+
+  // Word list
+  const list = document.getElementById('wordList');
+  const sorted = WORDS.map(w => {
+    const s = state.wordStats[w.en] || { correct: 0, wrong: 0 };
+    const total = s.correct + s.wrong;
+    const acc = total > 0 ? s.correct / total : -1;
+    return { ...w, acc, total, ...s };
+  }).sort((a, b) => a.acc - b.acc);
+
+  list.innerHTML = sorted.map(w => {
+    const accPct = w.total > 0 ? Math.round(w.acc * 100) : 0;
+    const lvl = w.acc < 0 ? 'low' : w.acc < 0.5 ? 'low' : w.acc < 0.8 ? 'mid' : 'high';
+    const accText = w.total > 0 ? accPct + '%' : '未';
+    return `<div class="word-row">
+      <div class="word-mastery"><div class="word-mastery-fill ${lvl}" style="width:${Math.max(accPct, 5)}%"></div></div>
+      <span class="word-en">${w.en}</span>
+      <span class="word-ja">${w.ja}</span>
+      <span class="word-acc">${accText}</span>
+    </div>`;
+  }).join('');
+}
+
+// ===== UTILITIES =====
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'worddrill_backup_' + today() + '.json';
+  a.click(); URL.revokeObjectURL(url);
+  toast('データをエクスポートしました');
+}
+
+function resetConfirm() {
+  if (confirm('全ての学習データをリセットしますか？\nこの操作は元に戻せません。')) {
+    state = defaultState();
+    saveState();
+    renderHome();
+    toast('データをリセットしました');
+  }
+}
+
+// ===== KEYBOARD =====
+document.addEventListener('keydown', e => {
+  if (!currentSession) return;
+
+  // Quiz keyboard shortcuts
+  if (currentSession.type === 'quiz' && !currentSession.answered) {
+    const keyMap = { '1': 0, '2': 1, '3': 2, '4': 3, 'a': 0, 'b': 1, 'c': 2, 'd': 3 };
+    const idx = keyMap[e.key.toLowerCase()];
+    if (idx !== undefined) {
+      const btns = document.querySelectorAll('.choice-btn');
+      if (btns[idx]) btns[idx].click();
+    }
+  }
+
+  // Writing Enter to submit
+  if (currentSession.type === 'writing' && e.key === 'Enter') {
+    submitWriting();
+  }
+});
+
+// ===== CLOUD SYNC =====
+const SYNC_CONFIG_KEY = 'worddrill_sync_config';
+let syncRef = null;
+let syncEnabled = false;
+let isMerging = false;
+
+function loadSyncConfig() {
+  try { return JSON.parse(localStorage.getItem(SYNC_CONFIG_KEY)) || null; }
+  catch(e) { return null; }
+}
+
+function hashSyncId(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash = hash & hash;
+  }
+  return 'id_' + Math.abs(hash).toString(36);
+}
+
+function initSync() {
+  const config = loadSyncConfig();
+  if (!config || !config.databaseURL || !config.apiKey || !config.syncId) {
+    updateSyncStatus('未接続');
+    return;
+  }
+  try {
+    if (!firebase.apps.length) {
+      firebase.initializeApp({ apiKey: config.apiKey, databaseURL: config.databaseURL });
+    }
+    const db = firebase.database();
+    syncRef = db.ref('worddrill/' + hashSyncId(config.syncId));
+    syncEnabled = true;
+
+    syncRef.on('value', (snapshot) => {
+      const remote = snapshot.val();
+      if (remote && remote.state) {
+        mergeRemoteState(remote.state);
+        updateSyncStatus('同期済み', true);
+      }
+    }, () => {
+      updateSyncStatus('エラー', false, true);
+    });
+
+    pushToCloud();
+    updateSyncStatus('同期済み', true);
+  } catch(e) {
+    updateSyncStatus('接続エラー', false, true);
+  }
+}
+
+function pushToCloud() {
+  if (!syncRef || !syncEnabled || isMerging) return;
+  syncRef.set({ state: state, updatedAt: Date.now() }).catch(() => {});
+}
+
+function mergeRemoteState(remote) {
+  if (isMerging) return;
+  isMerging = true;
+
+  let changed = false;
+
+  // Merge wordStats: take max of monotonic counters
+  if (remote.wordStats) {
+    for (const word in remote.wordStats) {
+      const r = remote.wordStats[word];
+      if (!state.wordStats[word]) {
+        state.wordStats[word] = { correct: r.correct || 0, wrong: r.wrong || 0, lastSeen: r.lastSeen || null };
+        changed = true;
+      } else {
+        const l = state.wordStats[word];
+        const newC = Math.max(l.correct || 0, r.correct || 0);
+        const newW = Math.max(l.wrong || 0, r.wrong || 0);
+        if (newC !== l.correct || newW !== l.wrong) { changed = true; }
+        l.correct = newC;
+        l.wrong = newW;
+        if (r.lastSeen && (!l.lastSeen || r.lastSeen > l.lastSeen)) l.lastSeen = r.lastSeen;
+      }
+    }
+  }
+
+  // Merge dailyLog: take max values, union word lists
+  if (remote.dailyLog) {
+    for (const date in remote.dailyLog) {
+      const r = remote.dailyLog[date];
+      if (!state.dailyLog[date]) {
+        state.dailyLog[date] = { sessions: r.sessions || 0, correct: r.correct || 0, wrong: r.wrong || 0, words: r.words ? [...r.words] : [] };
+        changed = true;
+      } else {
+        const l = state.dailyLog[date];
+        const newS = Math.max(l.sessions || 0, r.sessions || 0);
+        const newC = Math.max(l.correct || 0, r.correct || 0);
+        const newW = Math.max(l.wrong || 0, r.wrong || 0);
+        if (newS !== l.sessions || newC !== l.correct || newW !== l.wrong) { changed = true; }
+        l.sessions = newS; l.correct = newC; l.wrong = newW;
+        if (r.words) {
+          if (!l.words) l.words = [];
+          r.words.forEach(w => { if (!l.words.includes(w)) { l.words.push(w); changed = true; } });
+        }
+      }
+    }
+  }
+
+  if (changed) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    renderHome();
+  }
+
+  isMerging = false;
+}
+
+function updateSyncStatus(text, connected, error) {
+  const el = document.getElementById('syncStatus');
+  if (el) {
+    el.textContent = text;
+    el.className = connected ? 'connected' : error ? 'error' : '';
+  }
+  const btn = document.getElementById('syncBtn');
+  if (btn) btn.classList.toggle('synced', !!connected);
+}
+
+function openSyncModal() {
+  const config = loadSyncConfig() || {};
+  document.getElementById('syncDbUrl').value = config.databaseURL || '';
+  document.getElementById('syncApiKey').value = config.apiKey || '';
+  document.getElementById('syncIdInput').value = config.syncId || '';
+  document.getElementById('syncModal').classList.add('open');
+}
+
+function closeSyncModal() {
+  document.getElementById('syncModal').classList.remove('open');
+}
+
+function startSync() {
+  const databaseURL = document.getElementById('syncDbUrl').value.trim();
+  const apiKey = document.getElementById('syncApiKey').value.trim();
+  const syncId = document.getElementById('syncIdInput').value.trim();
+  if (!databaseURL || !apiKey || !syncId) { toast('全ての項目を入力してください'); return; }
+
+  localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify({ databaseURL, apiKey, syncId }));
+
+  if (syncRef) { syncRef.off(); syncRef = null; }
+  syncEnabled = false;
+
+  const doInit = () => { initSync(); closeSyncModal(); toast('同期を開始しました'); };
+
+  if (firebase.apps.length) {
+    firebase.app().delete().then(doInit);
+  } else {
+    doInit();
+  }
+}
+
+function disconnectSync() {
+  if (syncRef) { syncRef.off(); syncRef = null; }
+  syncEnabled = false;
+  localStorage.removeItem(SYNC_CONFIG_KEY);
+  updateSyncStatus('未接続');
+  document.getElementById('syncBtn').classList.remove('synced');
+  closeSyncModal();
+  toast('同期を解除しました');
+}
+
+// ===== INIT =====
+renderHome();
+initSync();
+</script>
+</body>
+</html>
