@@ -325,7 +325,7 @@ body {
 .sync-field input:focus { border-color: var(--accent); }
 .sync-note { font-size: 0.7rem; color: var(--text2); margin-bottom: 16px; line-height: 1.5; }
 .sync-actions { display: flex; gap: 8px; }
-.sync-status { margin-top: 12px; text-align: center; font-size: 0.75rem; color: var(--text2); }
+.sync-status { margin-top: 12px; text-align: center; font-size: 0.75rem; color: var(--text2); word-break: break-all; }
 .sync-status .connected { color: var(--correct); }
 .sync-status .error { color: var(--wrong); }
 .icon-btn.synced { background: var(--correct); color: #fff; border-color: var(--correct); }
@@ -1224,32 +1224,43 @@ function initSync() {
   }
   try {
     if (!firebase.apps.length) {
-      firebase.initializeApp({ apiKey: config.apiKey, databaseURL: config.databaseURL });
+      firebase.initializeApp({
+        apiKey: config.apiKey,
+        databaseURL: config.databaseURL,
+        projectId: config.databaseURL.replace('https://','').split('.')[0].replace('-default-rtdb','')
+      });
     }
     const db = firebase.database();
     syncRef = db.ref('worddrill/' + hashSyncId(config.syncId));
     syncEnabled = true;
+    updateSyncStatus('接続中...');
 
     syncRef.on('value', (snapshot) => {
       const remote = snapshot.val();
       if (remote && remote.state) {
         mergeRemoteState(remote.state);
-        updateSyncStatus('同期済み', true);
       }
-    }, () => {
-      updateSyncStatus('エラー', false, true);
+      updateSyncStatus('同期済み', true);
+    }, (err) => {
+      console.error('Firebase sync error:', err);
+      syncEnabled = false;
+      if (err.code === 'PERMISSION_DENIED') {
+        updateSyncStatus('権限エラー: DBルールを確認', false, true);
+      } else {
+        updateSyncStatus(err.message || 'エラー', false, true);
+      }
     });
-
-    pushToCloud();
-    updateSyncStatus('同期済み', true);
   } catch(e) {
-    updateSyncStatus('接続エラー', false, true);
+    console.error('Firebase init error:', e);
+    updateSyncStatus('接続エラー: ' + e.message, false, true);
   }
 }
 
 function pushToCloud() {
   if (!syncRef || !syncEnabled || isMerging) return;
-  syncRef.set({ state: state, updatedAt: Date.now() }).catch(() => {});
+  syncRef.set({ state: state, updatedAt: Date.now() }).catch((err) => {
+    console.error('Firebase push error:', err);
+  });
 }
 
 function mergeRemoteState(remote) {
