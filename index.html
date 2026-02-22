@@ -305,6 +305,16 @@ body {
 }
 
 /* ===== Sync Modal ===== */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  z-index: 60; align-items: center; justify-content: center; padding: 16px;
+}
+.modal-overlay[style*="display: flex"], .modal-overlay[style*="display:flex"] { display: flex; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px; max-width: 360px; width: 100%;
+  animation: slideIn 0.2s ease;
+}
 .sync-overlay {
   display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
   z-index: 50; align-items: center; justify-content: center; padding: 16px;
@@ -410,6 +420,17 @@ body {
         <div class="dash-card green">
           <div class="value" id="homeTodayAcc">-</div>
           <div class="label">正答率</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="resumeBanner" style="display:none" class="dash-section">
+      <div style="background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:14px 16px">
+        <div style="font-weight:700;font-size:0.9rem;margin-bottom:4px">中断中のセッションがあります</div>
+        <div id="resumeInfo" style="font-size:0.8rem;color:var(--text2);margin-bottom:12px"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="resumeReading()" style="flex:1">再開する</button>
+          <button class="btn btn-secondary" style="flex:1;border-color:var(--wrong);color:var(--wrong)" onclick="discardSavedSession()">終了して破棄</button>
         </div>
       </div>
     </div>
@@ -566,9 +587,12 @@ body {
   <!-- ===== READING SCREEN ===== -->
   <div class="screen" id="screen-reading">
     <div id="readingActive">
-      <div class="quiz-progress">
-        <div class="progress-bar"><div class="progress-fill" id="readProgressFill"></div></div>
-        <div class="progress-text" id="readProgressText">0 / 10</div>
+      <div class="quiz-progress" style="display:flex;align-items:center;gap:8px">
+        <div style="flex:1">
+          <div class="progress-bar"><div class="progress-fill" id="readProgressFill"></div></div>
+          <div class="progress-text" id="readProgressText">0 / 10</div>
+        </div>
+        <button class="btn btn-secondary" onclick="pauseReading()" style="padding:6px 12px;font-size:0.7rem;white-space:nowrap">中断</button>
       </div>
       <div class="card animate-in" id="readCard" style="text-align:left">
         <div class="card-label">Passage</div>
@@ -613,6 +637,18 @@ body {
         <div class="actions">
           <button class="btn btn-secondary" onclick="showScreen('home')">ホームに戻る</button>
           <button class="btn btn-primary" onclick="retryWrongReading()">間違えた問題を復習</button>
+        </div>
+      </div>
+    </div>
+    <!-- Pause modal -->
+    <div class="modal-overlay" id="pauseModal" style="display:none">
+      <div class="modal" style="text-align:center">
+        <h3 style="margin:0 0 8px">セッション中断</h3>
+        <p style="font-size:0.85rem;color:var(--text2);margin:0 0 16px">進捗: <span id="pauseProgress"></span></p>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <button class="btn btn-primary" onclick="saveAndPauseReading()">一時中断（あとで再開）</button>
+          <button class="btn btn-secondary" style="border-color:var(--wrong);color:var(--wrong)" onclick="endReadingEarly()">ここで終了（実績を記録）</button>
+          <button class="btn btn-secondary" onclick="closePauseModal()">キャンセル</button>
         </div>
       </div>
     </div>
@@ -833,6 +869,7 @@ function renderHome() {
   const total = d.correct + d.wrong;
   document.getElementById('homeTodayAcc').textContent = total > 0 ? Math.round(d.correct / total * 100) + '%' : '-';
   updateStreak();
+  checkSavedSession();
 }
 
 function updateStreak() {
@@ -1544,6 +1581,7 @@ function showReadingResults() {
   }
 
   recordSession();
+  clearSavedSession();
 }
 
 function retryWrongReading() {
@@ -1556,6 +1594,148 @@ function retryWrongReading() {
   document.getElementById('readingActive').style.display = '';
   document.getElementById('readingResults').style.display = 'none';
   renderReadingQuestion();
+}
+
+// ===== SESSION PAUSE / RESUME =====
+const SESSION_KEY = 'worddrill_paused_session';
+
+function pauseReading() {
+  if (!currentSession || currentSession.type !== 'reading') return;
+  const s = currentSession;
+  const answered = s.current + (s.answered ? 1 : 0);
+  document.getElementById('pauseProgress').textContent =
+    `${answered} / ${s.questions.length} 問回答済み（正解 ${s.correct} / 不正解 ${s.wrong}）`;
+  document.getElementById('pauseModal').style.display = 'flex';
+}
+
+function closePauseModal() {
+  document.getElementById('pauseModal').style.display = 'none';
+}
+
+function saveAndPauseReading() {
+  if (!currentSession) return;
+  const s = currentSession;
+  // If currently showing a question and already answered, advance to next
+  const saveData = {
+    questions: s.questions.map(q => q.id),
+    current: s.answered ? s.current + 1 : s.current,
+    correct: s.correct,
+    wrong: s.wrong,
+    wrongIds: s.wrongWords.map(q => q.id),
+    times: s.times || [],
+    savedAt: Date.now()
+  };
+  localStorage.setItem(SESSION_KEY, JSON.stringify(saveData));
+  pushPausedSessionToCloud(saveData);
+  closePauseModal();
+  currentSession = null;
+  showScreen('home');
+  toast('セッションを中断しました');
+}
+
+function endReadingEarly() {
+  if (!currentSession) return;
+  // Record session with current progress
+  recordSession();
+  closePauseModal();
+  clearSavedSession();
+  // Show results for answered questions only
+  const s = currentSession;
+  const answered = s.correct + s.wrong;
+  if (answered > 0) {
+    document.getElementById('readingActive').style.display = 'none';
+    document.getElementById('readingResults').style.display = '';
+    const pct = Math.round(s.correct / answered * 100);
+    document.getElementById('readScore').textContent = pct + '%';
+    document.getElementById('readTotal').textContent = answered;
+    document.getElementById('readCorrectCount').textContent = s.correct;
+    document.getElementById('readWrongCount').textContent = s.wrong;
+    if (s.times && s.times.length > 0) {
+      const avg = Math.round(s.times.reduce((a, b) => a + b, 0) / s.times.length);
+      document.getElementById('readAvgTime').textContent = avg + '秒';
+    }
+    const listEl = document.getElementById('readWrongList');
+    if (s.wrongWords.length > 0) {
+      listEl.innerHTML = '<h3>間違えた問題</h3>' + s.wrongWords.map(q =>
+        `<div class="wrong-word-item"><span class="en" style="font-size:0.8rem">${q.passage.split('\n')[0].slice(0, 50)}...</span><span class="ja" style="font-size:0.75rem">${q.choices[q.answer].slice(0, 30)}...</span></div>`
+      ).join('');
+    } else {
+      listEl.innerHTML = '<h3 style="color:var(--correct)">全問正解！</h3>';
+    }
+  } else {
+    currentSession = null;
+    showScreen('home');
+  }
+}
+
+function resumeReading() {
+  const raw = localStorage.getItem(SESSION_KEY);
+  if (!raw) return;
+  const saved = JSON.parse(raw);
+  const qMap = {};
+  READING_QUESTIONS.forEach(q => qMap[q.id] = q);
+  const questions = saved.questions.map(id => qMap[id]).filter(Boolean);
+  if (questions.length === 0) { clearSavedSession(); return; }
+
+  currentSession = {
+    type: 'reading',
+    questions: questions,
+    current: Math.min(saved.current, questions.length),
+    correct: saved.correct || 0,
+    wrong: saved.wrong || 0,
+    wrongWords: (saved.wrongIds || []).map(id => qMap[id]).filter(Boolean),
+    answered: false,
+    times: saved.times || []
+  };
+
+  clearSavedSession();
+  showScreen('reading');
+  document.getElementById('readingActive').style.display = '';
+  document.getElementById('readingResults').style.display = 'none';
+  renderReadingQuestion();
+}
+
+function discardSavedSession() {
+  const raw = localStorage.getItem(SESSION_KEY);
+  if (raw) {
+    // Record partial results before discarding
+    const saved = JSON.parse(raw);
+    if ((saved.correct || 0) + (saved.wrong || 0) > 0) {
+      recordSession();
+    }
+  }
+  clearSavedSession();
+  renderHome();
+  toast('中断セッションを終了しました');
+}
+
+function clearSavedSession() {
+  localStorage.removeItem(SESSION_KEY);
+  pushPausedSessionToCloud(null);
+}
+
+function pushPausedSessionToCloud(data) {
+  if (!syncRef || !syncEnabled) return;
+  syncRef.child('pausedSession').set(data).catch(err => {
+    console.error('Firebase pause sync error:', err);
+  });
+}
+
+function checkSavedSession() {
+  const raw = localStorage.getItem(SESSION_KEY);
+  const banner = document.getElementById('resumeBanner');
+  const info = document.getElementById('resumeInfo');
+  if (raw) {
+    const saved = JSON.parse(raw);
+    const answered = (saved.correct || 0) + (saved.wrong || 0);
+    const total = saved.questions ? saved.questions.length : 0;
+    const ago = Math.round((Date.now() - (saved.savedAt || 0)) / 60000);
+    const timeStr = ago < 1 ? 'たった今' : ago < 60 ? ago + '分前' : Math.round(ago / 60) + '時間前';
+    info.textContent = `読解 ${answered}/${total} 問回答済み・${timeStr}に中断`;
+    banner.style.display = '';
+  } else {
+    banner.style.display = 'none';
+  }
 }
 
 // ===== CLOUD SYNC =====
@@ -1601,6 +1781,25 @@ function initSync() {
       const remote = snapshot.val();
       if (remote && remote.state) {
         mergeRemoteState(remote.state);
+      }
+      // Sync paused session from other device
+      if (remote && remote.pausedSession) {
+        const local = localStorage.getItem(SESSION_KEY);
+        const localSaved = local ? JSON.parse(local) : null;
+        if (!localSaved || (remote.pausedSession.savedAt > (localSaved.savedAt || 0))) {
+          localStorage.setItem(SESSION_KEY, JSON.stringify(remote.pausedSession));
+          checkSavedSession();
+        }
+      } else if (remote && !remote.pausedSession) {
+        // Other device cleared the paused session
+        const local = localStorage.getItem(SESSION_KEY);
+        if (local) {
+          const localData = JSON.parse(local);
+          // Only clear if the local one was synced (not a brand new local pause)
+          if (localData.savedAt && (Date.now() - localData.savedAt > 5000)) {
+            // Don't auto-clear — user may want to keep it
+          }
+        }
       }
       updateSyncStatus('同期済み', true);
     }, (err) => {
