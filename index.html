@@ -329,6 +329,31 @@ body {
 .sync-status .connected { color: var(--correct); }
 .sync-status .error { color: var(--wrong); }
 .icon-btn.synced { background: var(--correct); color: #fff; border-color: var(--correct); }
+
+/* ===== Reading ===== */
+.card-passage {
+  font-size: 0.95rem; line-height: 1.7; text-align: left; margin-bottom: 12px;
+  color: var(--text); padding: 0 4px;
+}
+.card-question {
+  font-size: 0.85rem; color: var(--accent2); font-weight: 600;
+  text-align: left; padding: 0 4px;
+}
+.read-explanation {
+  background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 12px;
+  font-size: 0.85rem; line-height: 1.6; animation: slideIn 0.25s ease;
+}
+.read-explanation .exp-label {
+  font-size: 0.7rem; color: var(--accent2); font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;
+}
+.read-explanation .exp-text { color: var(--text2); }
+.genre-tag {
+  display: inline-block; font-size: 0.6rem; color: var(--accent2); background: var(--surface2);
+  padding: 2px 8px; border-radius: 4px; font-weight: 600; text-transform: uppercase;
+  position: absolute; top: 12px; right: 16px;
+}
 </style>
 </head>
 <body>
@@ -358,6 +383,7 @@ body {
     <button class="nav-btn active" onclick="showScreen('home')">ホーム</button>
     <button class="nav-btn" onclick="showScreen('quiz')">クイズ</button>
     <button class="nav-btn" onclick="showScreen('writing')">記述</button>
+    <button class="nav-btn" onclick="showScreen('reading')">読解</button>
     <button class="nav-btn" onclick="showScreen('dashboard')">記録</button>
   </div>
 
@@ -399,6 +425,14 @@ body {
         <div class="mode-card" onclick="startQuiz('weak','ja2en')">
           <h3>4択クイズ(逆) - 苦手復習</h3>
           <p>正答率の低い単語を優先して出題</p>
+        </div>
+        <div class="mode-card" onclick="startReading('all')">
+          <h3>読解 Inference - 全問</h3>
+          <p>英文パッセージを読み、推論問題に4択で回答</p>
+        </div>
+        <div class="mode-card" onclick="startReading('weak')">
+          <h3>読解 Inference - 苦手復習</h3>
+          <p>正答率の低い読解問題を優先出題</p>
         </div>
         <div class="mode-card" onclick="startWriting('all')">
           <h3>記述モード - 全単語</h3>
@@ -513,6 +547,55 @@ body {
         <div class="actions">
           <button class="btn btn-secondary" onclick="showScreen('home')">ホームに戻る</button>
           <button class="btn btn-primary" onclick="retryWrong('writing')">間違えた単語を復習</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== READING SCREEN ===== -->
+  <div class="screen" id="screen-reading">
+    <div id="readingActive">
+      <div class="quiz-progress">
+        <div class="progress-bar"><div class="progress-fill" id="readProgressFill"></div></div>
+        <div class="progress-text" id="readProgressText">0 / 10</div>
+      </div>
+      <div class="card animate-in" id="readCard" style="text-align:left">
+        <div class="card-label">Passage</div>
+        <span class="genre-tag" id="readGenre"></span>
+        <div class="card-passage" id="readPassage"></div>
+        <div class="card-question" id="readQuestion"></div>
+      </div>
+      <div class="choices" id="readChoices"></div>
+      <div class="read-explanation" id="readExplanation" style="display:none">
+        <div class="exp-label">解説</div>
+        <div class="exp-text" id="readExpText"></div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" id="readNextBtn" onclick="nextReading()" style="display:none">次の問題</button>
+      </div>
+    </div>
+    <div id="readingResults" style="display:none">
+      <div class="results animate-in">
+        <div class="results-score" id="readScore">85%</div>
+        <div class="results-label">正答率</div>
+        <div class="results-stats">
+          <div class="stat-card">
+            <div class="stat-value" id="readTotal">10</div>
+            <div class="stat-label">出題数</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value correct-color" id="readCorrectCount">8</div>
+            <div class="stat-label">正解</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value wrong-color" id="readWrongCount">2</div>
+            <div class="stat-label">不正解</div>
+          </div>
+        </div>
+        <div class="wrong-words-list" id="readWrongList"></div>
+        <div class="actions">
+          <button class="btn btn-secondary" onclick="showScreen('home')">ホームに戻る</button>
+          <button class="btn btn-primary" onclick="retryWrongReading()">間違えた問題を復習</button>
         </div>
       </div>
     </div>
@@ -682,6 +765,9 @@ const WORDS = [
   {"en":"repair","ja":"修理する"}
 ];
 
+// ===== READING DATA =====
+const READING_QUESTIONS = [{"id":1,"genre":"economy","passage":"The technician updated the new feature This morning. The update fixed multiple minor issues.","question":"What is implied by the passage?","choices":["They will stop providing the service immediately.","Customers refused to use any technology.","They are making changes to improve the product or service.","The company has no competitors."],"answer":2},{"id":2,"genre":"economy","passage":"Yesterday, The client announced the schedule. The update fixed multiple minor issues.","question":"Which inference is safest based on the passage?","choices":["The reader should be cautious about adding extra information not stated.","The passage clearly states every detail.","The passage proves the opposite conclusion.","The passage is mainly about entertainment."],"answer":0},{"id":3,"genre":"business","passage":"This morning, The sales staff reduced the training session. A few employees asked for additional guidance.","question":"What does the passage suggest?","choices":["Demand has already doubled.","Prices will definitely rise tomorrow.","The organization plans to hire many new staff.","The organization is trying to control expenses."],"answer":3},{"id":4,"genre":"logistics","passage":"The manager investigated the campaign due to customer complaints. The update fixed multiple minor issues.","question":"Which inference is safest based on the passage?","choices":["The passage clearly states every detail.","The reader should be cautious about adding extra information not stated.","The passage is mainly about entertainment.","The passage proves the opposite conclusion."],"answer":1},{"id":5,"genre":"economy","passage":"The client tested the training session Last week. The document contained no supporting data.","question":"Which inference is safest based on the passage?","choices":["The passage is mainly about entertainment.","The passage clearly states every detail.","The reader should be cautious about adding extra information not stated.","The passage proves the opposite conclusion."],"answer":2},{"id":6,"genre":"health","passage":"This morning, The technician investigated the proposal. The change affected multiple departments.","question":"Which inference is safest based on the passage?","choices":["The passage proves the opposite conclusion.","The reader should be cautious about adding extra information not stated.","The passage clearly states every detail.","The passage is mainly about entertainment."],"answer":1},{"id":7,"genre":"health","passage":"The client replaced the report Earlier today. A few employees asked for additional guidance.","question":"Which inference is safest based on the passage?","choices":["The passage is mainly about entertainment.","The passage clearly states every detail.","The reader should be cautious about adding extra information not stated.","The passage proves the opposite conclusion."],"answer":2},{"id":8,"genre":"environment","passage":"The supervisor reviewed the training session. However, attendance declined afterward.","question":"Why did they take that action?","choices":["They wanted to avoid mistakes.","They wanted to ignore the content.","They had no time to read it.","They were certain it was perfect."],"answer":0},{"id":9,"genre":"health","passage":"Last week, The company announced the campaign. No further details were provided in the message.","question":"Which inference is safest based on the passage?","choices":["The passage is mainly about entertainment.","The passage proves the opposite conclusion.","The passage clearly states every detail.","The reader should be cautious about adding extra information not stated."],"answer":3},{"id":10,"genre":"logistics","passage":"Although the request was unexpected, The technician announced the report. The announcement surprised many staff members.","question":"Which inference is safest based on the passage?","choices":["The passage is mainly about entertainment.","The reader should be cautious about adding extra information not stated.","The passage clearly states every detail.","The passage proves the opposite conclusion."],"answer":1},{"id":11,"genre":"education","passage":"The technician announced the policy Last week. The update fixed multiple minor issues.","question":"Which inference is safest based on the passage?","choices":["The passage proves the opposite conclusion.","The reader should be cautious about adding extra information not stated.","The passage is mainly about entertainment.","The passage clearly states every detail."],"answer":1},{"id":12,"genre":"culture","passage":"The manager approved the shipment. As a result, some tasks were delayed.","question":"What can be inferred from the passage?","choices":["Everything finished earlier than expected.","The plan was canceled completely.","Demand increased sharply.","There was a delay in the plan."],"answer":3},{"id":13,"genre":"economy","passage":"The supervisor replaced the proposal. However, no response came for two days.","question":"Which inference is safest based on the passage?","choices":["The reader should be cautious about adding extra information not stated.","The passage clearly states every detail.","The passage is mainly about entertainment.","The passage proves the opposite conclusion."],"answer":0},{"id":14,"genre":"customer","passage":"The client investigated the training session. As a result, costs were controlled more strictly.","question":"What does the passage suggest?","choices":["The organization plans to hire many new staff.","Prices will definitely rise tomorrow.","The organization is trying to control expenses.","Demand has already doubled."],"answer":2},{"id":15,"genre":"customer","passage":"The intern submitted the schedule In the first quarter. Several points were unclear to some attendees.","question":"Which inference is safest based on the passage?","choices":["The passage is mainly about entertainment.","The passage proves the opposite conclusion.","The reader should be cautious about adding extra information not stated.","The passage clearly states every detail."],"answer":2},{"id":16,"genre":"health","passage":"The client launched the campaign In the first quarter. The venue was nearly empty at noon.","question":"What is implied by the passage?","choices":["They are making changes to improve the product or service.","Customers refused to use any technology.","The company has no competitors.","They will stop providing the service immediately."],"answer":0},{"id":17,"genre":"customer","passage":"The team rejected the meeting Earlier today. Responses did not arrive for two days.","question":"Which inference is safest based on the passage?","choices":["The passage is mainly about entertainment.","The passage proves the opposite conclusion.","The passage clearly states every detail.","The reader should be cautious about adding extra information not stated."],"answer":3},{"id":18,"genre":"economy","passage":"Before the deadline, The client updated the contract. No further details were provided in the message.","question":"What is implied by the passage?","choices":["Customers refused to use any technology.","The company has no competitors.","They are making changes to improve the product or service.","They will stop providing the service immediately."],"answer":2},{"id":19,"genre":"culture","passage":"The manager rejected the contract Yesterday. No further details were provided in the message.","question":"Which inference is safest based on the passage?","choices":["The passage proves the opposite conclusion.","The passage clearly states every detail.","The reader should be cautious about adding extra information not stated.","The passage is mainly about entertainment."],"answer":2},{"id":20,"genre":"business","passage":"On Monday, The sales staff submitted the meeting. The document contained no supporting data.","question":"Which inference is safest based on the passage?","choices":["The passage proves the opposite conclusion.","The passage is mainly about entertainment.","The reader should be cautious about adding extra information not stated.","The passage clearly states every detail."],"answer":2},{"id":21,"genre":"customer","passage":"The manager investigated the shipment Yesterday. Responses did not arrive for two days.","question":"Which inference is safest based on the passage?","choices":["The passage is mainly about entertainment.","The passage proves the opposite conclusion.","The reader should be cautious about adding extra information not stated.","The passage clearly states every detail."],"answer":2},{"id":22,"genre":"technology","passage":"The team rejected the new feature At 9 a.m.. The change affected multiple departments.","question":"What is implied by the passage?","choices":["They will stop providing the service immediately.","The company has no competitors.","Customers refused to use any technology.","They are making changes to improve the product or service."],"answer":3},{"id":23,"genre":"environment","passage":"The intern launched the new feature. However, attendance declined afterward.","question":"What is implied by the passage?","choices":["Customers refused to use any technology.","They are making changes to improve the product or service.","They will stop providing the service immediately.","The company has no competitors."],"answer":1},{"id":24,"genre":"business","passage":"Although the weather was poor, The team postponed the contract. No further details were provided in the message.","question":"What can be inferred from the passage?","choices":["There was a delay in the plan.","The plan was canceled completely.","Demand increased sharply.","Everything finished earlier than expected."],"answer":0},{"id":25,"genre":"technology","passage":"Although the request was unexpected, The technician approved the contract. The announcement surprised many staff members.","question":"Which inference is safest based on the passage?","choices":["The passage clearly states every detail.","The passage is mainly about entertainment.","The reader should be cautious about adding extra information not stated.","The passage proves the opposite conclusion."],"answer":2},{"id":26,"genre":"culture","passage":"In the first quarter, The technician launched the schedule. The change affected multiple departments.","question":"What is implied by the passage?","choices":["Customers refused to use any technology.","They are making changes to improve the product or service.","They will stop providing the service immediately.","The company has no competitors."],"answer":1},{"id":27,"genre":"economy","passage":"The sales staff replaced the training session. However, no response came for two days.","question":"Which inference is safest based on the passage?","choices":["The reader should be cautious about adding extra information not stated.","The passage clearly states every detail.","The passage proves the opposite conclusion.","The passage is mainly about entertainment."],"answer":0},{"id":28,"genre":"culture","passage":"The team postponed the policy Yesterday. The update fixed multiple minor issues.","question":"What can be inferred from the passage?","choices":["The plan was canceled completely.","Demand increased sharply.","There was a delay in the plan.","Everything finished earlier than expected."],"answer":2},{"id":29,"genre":"health","passage":"The intern updated the new feature Last week. The document contained no supporting data.","question":"What is implied by the passage?","choices":["The company has no competitors.","Customers refused to use any technology.","They are making changes to improve the product or service.","They will stop providing the service immediately."],"answer":2},{"id":30,"genre":"environment","passage":"The company investigated the shipment At 9 a.m.. The change affected multiple departments.","question":"Which inference is safest based on the passage?","choices":["The passage proves the opposite conclusion.","The passage is mainly about entertainment.","The passage clearly states every detail.","The reader should be cautious about adding extra information not stated."],"answer":3},{"id":31,"genre":"education","passage":"Earlier today, The client replaced the campaign. The change affected multiple departments.","question":"Which inference is safest based on the passage?","choices":["The reader should be cautious about adding extra information not stated.","The passage proves the opposite conclusion.","The passage clearly states every detail.","The passage is mainly about entertainment."],"answer":0},{"id":32,"genre":"economy","passage":"The intern rejected the contract due to system maintenance. Some customers mentioned confusion about the process.","question":"Which inference is safest based on the passage?","choices":["The passage is mainly about entertainment.","The passage clearly states every detail.","The reader should be cautious about adding extra information not stated.","The passage proves the opposite conclusion."],"answer":2},{"id":33,"genre":"business","passage":"The sales staff reduced the shipment At 9 a.m.. A few employees asked for additional guidance.","question":"What does the passage suggest?","choices":["Prices will definitely rise tomorrow.","The organization is trying to control expenses.","Demand has already doubled.","The organization plans to hire many new staff."],"answer":1},{"id":34,"genre":"environment","passage":"The client reduced the meeting Last week. The venue was nearly empty at noon.","question":"What does the passage suggest?","choices":["The organization is trying to control expenses.","The organization plans to hire many new staff.","Demand has already doubled.","Prices will definitely rise tomorrow."],"answer":0},{"id":35,"genre":"environment","passage":"The sales staff investigated the training session due to budget limits. The document contained no supporting data.","question":"What does the passage suggest?","choices":["Demand has already doubled.","The organization is trying to control expenses.","The organization plans to hire many new staff.","Prices will definitely rise tomorrow."],"answer":1},{"id":36,"genre":"travel","passage":"The client expanded the schedule due to customer complaints. Responses did not arrive for two days.","question":"Which inference is safest based on the passage?","choices":["The passage clearly states every detail.","The reader should be cautious about adding extra information not stated.","The passage proves the opposite conclusion.","The passage is mainly about entertainment."],"answer":1},{"id":37,"genre":"economy","passage":"The intern postponed the new feature due to budget limits. No further details were provided in the message.","question":"What can be inferred from the passage?","choices":["The plan was canceled completely.","There was a delay in the plan.","Demand increased sharply.","Everything finished earlier than expected."],"answer":1},{"id":38,"genre":"education","passage":"Although costs were rising, The client investigated the meeting. No further details were provided in the message.","question":"What does the passage suggest?","choices":["The organization plans to hire many new staff.","Prices will definitely rise tomorrow.","The organization is trying to control expenses.","Demand has already doubled."],"answer":2},{"id":39,"genre":"culture","passage":"Although costs were rising, The manager announced the new feature. Responses did not arrive for two days.","question":"What does the passage suggest?","choices":["The organization is trying to control expenses.","Demand has already doubled.","The organization plans to hire many new staff.","Prices will definitely rise tomorrow."],"answer":0},{"id":40,"genre":"culture","passage":"Although costs were rising, The company investigated the campaign. The announcement surprised many staff members.","question":"What does the passage suggest?","choices":["The organization is trying to control expenses.","Prices will definitely rise tomorrow.","Demand has already doubled.","The organization plans to hire many new staff."],"answer":0},{"id":41,"genre":"economy","passage":"The technician updated the training session. However, no response came for two days.","question":"What is implied by the passage?","choices":["Customers refused to use any technology.","They are making changes to improve the product or service.","The company has no competitors.","They will stop providing the service immediately."],"answer":1},{"id":42,"genre":"customer","passage":"The sales staff expanded the shipment Before the deadline. The change affected multiple departments.","question":"Which inference is safest based on the passage?","choices":["The passage is mainly about entertainment.","The passage clearly states every detail.","The passage proves the opposite conclusion.","The reader should be cautious about adding extra information not stated."],"answer":3},{"id":43,"genre":"education","passage":"The intern launched the meeting At 9 a.m.. The update fixed multiple minor issues.","question":"What is implied by the passage?","choices":["Customers refused to use any technology.","They will stop providing the service immediately.","They are making changes to improve the product or service.","The company has no competitors."],"answer":2},{"id":44,"genre":"environment","passage":"Although costs were rising, The manager expanded the shipment. Responses did not arrive for two days.","question":"What does the passage suggest?","choices":["Prices will definitely rise tomorrow.","Demand has already doubled.","The organization plans to hire many new staff.","The organization is trying to control expenses."],"answer":3},{"id":45,"genre":"economy","passage":"The sales staff reviewed the campaign. However, no response came for two days.","question":"Why did they take that action?","choices":["They wanted to avoid mistakes.","They had no time to read it.","They wanted to ignore the content.","They were certain it was perfect."],"answer":0},{"id":46,"genre":"environment","passage":"The sales staff launched the proposal because of supply delays. The update fixed multiple minor issues.","question":"What is implied by the passage?","choices":["The company has no competitors.","They are making changes to improve the product or service.","Customers refused to use any technology.","They will stop providing the service immediately."],"answer":1},{"id":47,"genre":"business","passage":"The client updated the report This morning. Responses did not arrive for two days.","question":"What is implied by the passage?","choices":["They are making changes to improve the product or service.","Customers refused to use any technology.","The company has no competitors.","They will stop providing the service immediately."],"answer":0},{"id":48,"genre":"health","passage":"On Monday, The team tested the policy. Several points were unclear to some attendees.","question":"Which inference is safest based on the passage?","choices":["The passage proves the opposite conclusion.","The reader should be cautious about adding extra information not stated.","The passage clearly states every detail.","The passage is mainly about entertainment."],"answer":1},{"id":49,"genre":"economy","passage":"The client postponed the training session. As a result, registrations filled quickly.","question":"What can be inferred from the passage?","choices":["Demand increased sharply.","Everything finished earlier than expected.","There was a delay in the plan.","The plan was canceled completely."],"answer":2},{"id":50,"genre":"business","passage":"Although the timeline was tight, The supervisor postponed the meeting. No further details were provided in the message.","question":"What can be inferred from the passage?","choices":["There was a delay in the plan.","Everything finished earlier than expected.","Demand increased sharply.","The plan was canceled completely."],"answer":0},{"id":51,"genre":"education","passage":"Although the timeline was tight, The technician reduced the new feature. The change affected multiple departments.","question":"What does the passage suggest?","choices":["Prices will definitely rise tomorrow.","The organization is trying to control expenses.","The organization plans to hire many new staff.","Demand has already doubled."],"answer":1},{"id":52,"genre":"education","passage":"The company scheduled the new feature because several errors were found. The announcement surprised many staff members.","question":"Why did they take that action?","choices":["They wanted to ignore the content.","They were certain it was perfect.","They had no time to read it.","They wanted to avoid mistakes."],"answer":3},{"id":53,"genre":"economy","passage":"In the first quarter, The sales staff scheduled the contract. Responses did not arrive for two days.","question":"Which inference is safest based on the passage?","choices":["The passage proves the opposite conclusion.","The passage is mainly about entertainment.","The passage clearly states every detail.","The reader should be cautious about adding extra information not stated."],"answer":3},{"id":54,"genre":"environment","passage":"The client launched the schedule. However, the website slowed down.","question":"What is implied by the passage?","choices":["They are making changes to improve the product or service.","The company has no competitors.","They will stop providing the service immediately.","Customers refused to use any technology."],"answer":0},{"id":55,"genre":"travel","passage":"The technician updated the proposal because several errors were found. The update fixed multiple minor issues.","question":"Why did they take that action?","choices":["They wanted to avoid mistakes.","They were certain it was perfect.","They had no time to read it.","They wanted to ignore the content."],"answer":0},{"id":56,"genre":"travel","passage":"The technician postponed the new feature. However, expenses rose faster than revenue.","question":"What can be inferred from the passage?","choices":["The plan was canceled completely.","There was a delay in the plan.","Demand increased sharply.","Everything finished earlier than expected."],"answer":1},{"id":57,"genre":"business","passage":"The technician investigated the policy. As a result, some tasks were delayed.","question":"What can be inferred from the passage?","choices":["There was a delay in the plan.","The plan was canceled completely.","Everything finished earlier than expected.","Demand increased sharply."],"answer":0},{"id":58,"genre":"technology","passage":"The technician replaced the campaign Last week. Responses did not arrive for two days.","question":"Which inference is safest based on the passage?","choices":["The passage clearly states every detail.","The passage proves the opposite conclusion.","The passage is mainly about entertainment.","The reader should be cautious about adding extra information not stated."],"answer":3},{"id":59,"genre":"logistics","passage":"The team updated the proposal because demand fell. The venue was nearly empty at noon.","question":"What is implied by the passage?","choices":["They are making changes to improve the product or service.","Customers refused to use any technology.","They will stop providing the service immediately.","The company has no competitors."],"answer":0},{"id":60,"genre":"travel","passage":"The sales staff launched the schedule. As a result, customer satisfaction improved slightly.","question":"What is implied by the passage?","choices":["They will stop providing the service immediately.","They are making changes to improve the product or service.","The company has no competitors.","Customers refused to use any technology."],"answer":1},{"id":61,"genre":"technology","passage":"This morning, The company announced the proposal. Responses did not arrive for two days.","question":"Which inference is safest based on the passage?","choices":["The passage clearly states every detail.","The passage is mainly about entertainment.","The reader should be cautious about adding extra information not stated.","The passage proves the opposite conclusion."],"answer":2},{"id":62,"genre":"travel","passage":"The technician investigated the campaign. However, no response came for two days.","question":"Which inference is safest based on the passage?","choices":["The passage clearly states every detail.","The passage proves the opposite conclusion.","The reader should be cautious about adding extra information not stated.","The passage is mainly about entertainment."],"answer":2},{"id":63,"genre":"technology","passage":"The company postponed the report because several errors were found. The venue was nearly empty at noon.","question":"What can be inferred from the passage?","choices":["Demand increased sharply.","The plan was canceled completely.","Everything finished earlier than expected.","There was a delay in the plan."],"answer":3},{"id":64,"genre":"environment","passage":"The supervisor scheduled the proposal due to customer complaints. Some customers mentioned confusion about the process.","question":"Which inference is safest based on the passage?","choices":["The passage clearly states every detail.","The passage proves the opposite conclusion.","The passage is mainly about entertainment.","The reader should be cautious about adding extra information not stated."],"answer":3},{"id":65,"genre":"logistics","passage":"The manager tested the training session. As a result, costs were controlled more strictly.","question":"What does the passage suggest?","choices":["The organization is trying to control expenses.","Demand has already doubled.","Prices will definitely rise tomorrow.","The organization plans to hire many new staff."],"answer":0},{"id":66,"genre":"education","passage":"The supervisor reduced the meeting Earlier today. A few employees asked for additional guidance.","question":"What does the passage suggest?","choices":["The organization is trying to control expenses.","The organization plans to hire many new staff.","Prices will definitely rise tomorrow.","Demand has already doubled."],"answer":0},{"id":67,"genre":"travel","passage":"The sales staff replaced the contract. However, attendance declined afterward.","question":"Which inference is safest based on the passage?","choices":["The passage proves the opposite conclusion.","The passage is mainly about entertainment.","The passage clearly states every detail.","The reader should be cautious about adding extra information not stated."],"answer":3},{"id":68,"genre":"culture","passage":"Although the timeline was tight, The sales staff submitted the new feature. Responses did not arrive for two days.","question":"What is implied by the passage?","choices":["They will stop providing the service immediately.","They are making changes to improve the product or service.","The company has no competitors.","Customers refused to use any technology."],"answer":1},{"id":69,"genre":"travel","passage":"Although costs were rising, The supervisor postponed the report. The announcement surprised many staff members.","question":"What can be inferred from the passage?","choices":["Everything finished earlier than expected.","The plan was canceled completely.","There was a delay in the plan.","Demand increased sharply."],"answer":2},{"id":70,"genre":"economy","passage":"Although the weather was poor, The team rejected the policy. The update fixed multiple minor issues.","question":"Which inference is safest based on the passage?","choices":["The passage proves the opposite conclusion.","The reader should be cautious about adding extra information not stated.","The passage clearly states every detail.","The passage is mainly about entertainment."],"answer":1},{"id":71,"genre":"education","passage":"The company expanded the new feature. As a result, some tasks were delayed.","question":"What can be inferred from the passage?","choices":["Demand increased sharply.","Everything finished earlier than expected.","There was a delay in the plan.","The plan was canceled completely."],"answer":2},{"id":72,"genre":"travel","passage":"The supervisor replaced the policy. As a result, some tasks were delayed.","question":"What can be inferred from the passage?","choices":["There was a delay in the plan.","The plan was canceled completely.","Everything finished earlier than expected.","Demand increased sharply."],"answer":0},{"id":73,"genre":"customer","passage":"The client approved the meeting. However, the website slowed down.","question":"Which inference is safest based on the passage?","choices":["The passage clearly states every detail.","The reader should be cautious about adding extra information not stated.","The passage proves the opposite conclusion.","The passage is mainly about entertainment."],"answer":1},{"id":74,"genre":"education","passage":"The company announced the schedule Earlier today. A few employees asked for additional guidance.","question":"Which inference is safest based on the passage?","choices":["The passage clearly states every detail.","The passage is mainly about entertainment.","The passage proves the opposite conclusion.","The reader should be cautious about adding extra information not stated."],"answer":3},{"id":75,"genre":"environment","passage":"The company postponed the campaign. However, attendance declined afterward.","question":"What can be inferred from the passage?","choices":["There was a delay in the plan.","The plan was canceled completely.","Everything finished earlier than expected.","Demand increased sharply."],"answer":0},{"id":76,"genre":"culture","passage":"The team updated the training session In the first quarter. The document contained no supporting data.","question":"What is implied by the passage?","choices":["Customers refused to use any technology.","They will stop providing the service immediately.","They are making changes to improve the product or service.","The company has no competitors."],"answer":2},{"id":77,"genre":"business","passage":"The intern tested the report On Monday. The document contained no supporting data.","question":"Which inference is safest based on the passage?","choices":["The passage clearly states every detail.","The reader should be cautious about adding extra information not stated.","The passage proves the opposite conclusion.","The passage is mainly about entertainment."],"answer":1},{"id":78,"genre":"technology","passage":"In the first quarter, The team approved the meeting. No further details were provided in the message.","question":"Which inference is safest based on the passage?","choices":["The reader should be cautious about adding extra information not stated.","The passage is mainly about entertainment.","The passage clearly states every detail.","The passage proves the opposite conclusion."],"answer":0},{"id":79,"genre":"business","passage":"Although the timeline was tight, The technician rejected the contract. Some customers mentioned confusion about the process.","question":"Which inference is safest based on the passage?","choices":["The reader should be cautious about adding extra information not stated.","The passage clearly states every detail.","The passage proves the opposite conclusion.","The passage is mainly about entertainment."],"answer":0},{"id":80,"genre":"education","passage":"The client expanded the campaign due to budget limits. The venue was nearly empty at noon.","question":"What does the passage suggest?","choices":["The organization is trying to control expenses.","The organization plans to hire many new staff.","Demand has already doubled.","Prices will definitely rise tomorrow."],"answer":0},{"id":81,"genre":"business","passage":"The sales staff launched the report. However, no response came for two days.","question":"What is implied by the passage?","choices":["They will stop providing the service immediately.","The company has no competitors.","They are making changes to improve the product or service.","Customers refused to use any technology."],"answer":2},{"id":82,"genre":"logistics","passage":"The company rejected the proposal because several errors were found. Several points were unclear to some attendees.","question":"Why did they take that action?","choices":["They had no time to read it.","They were certain it was perfect.","They wanted to avoid mistakes.","They wanted to ignore the content."],"answer":2},{"id":83,"genre":"health","passage":"The sales staff reviewed the new feature. However, attendance declined afterward.","question":"Why did they take that action?","choices":["They wanted to avoid mistakes.","They had no time to read it.","They were certain it was perfect.","They wanted to ignore the content."],"answer":0},{"id":84,"genre":"travel","passage":"The intern tested the proposal. However, the client requested revisions again.","question":"Which inference is safest based on the passage?","choices":["The passage is mainly about entertainment.","The passage clearly states every detail.","The reader should be cautious about adding extra information not stated.","The passage proves the opposite conclusion."],"answer":2},{"id":85,"genre":"business","passage":"The team scheduled the shipment because demand fell. Some customers mentioned confusion about the process.","question":"Which inference is safest based on the passage?","choices":["The passage proves the opposite conclusion.","The passage clearly states every detail.","The reader should be cautious about adding extra information not stated.","The passage is mainly about entertainment."],"answer":2},{"id":86,"genre":"logistics","passage":"On Monday, The team rejected the campaign. A few employees asked for additional guidance.","question":"Which inference is safest based on the passage?","choices":["The passage is mainly about entertainment.","The passage proves the opposite conclusion.","The passage clearly states every detail.","The reader should be cautious about adding extra information not stated."],"answer":3},{"id":87,"genre":"economy","passage":"The client announced the policy At 9 a.m.. The update fixed multiple minor issues.","question":"Which inference is safest based on the passage?","choices":["The passage proves the opposite conclusion.","The reader should be cautious about adding extra information not stated.","The passage is mainly about entertainment.","The passage clearly states every detail."],"answer":1},{"id":88,"genre":"education","passage":"The sales staff launched the report. As a result, customer satisfaction improved slightly.","question":"What is implied by the passage?","choices":["The company has no competitors.","They will stop providing the service immediately.","Customers refused to use any technology.","They are making changes to improve the product or service."],"answer":3},{"id":89,"genre":"culture","passage":"The intern submitted the meeting. However, no response came for two days.","question":"Which inference is safest based on the passage?","choices":["The passage proves the opposite conclusion.","The passage clearly states every detail.","The passage is mainly about entertainment.","The reader should be cautious about adding extra information not stated."],"answer":3},{"id":90,"genre":"customer","passage":"In the first quarter, The client postponed the contract. The change affected multiple departments.","question":"What can be inferred from the passage?","choices":["The plan was canceled completely.","Demand increased sharply.","Everything finished earlier than expected.","There was a delay in the plan."],"answer":3},{"id":91,"genre":"technology","passage":"The technician tested the policy. As a result, the deadline was extended.","question":"What can be inferred from the passage?","choices":["There was a delay in the plan.","Demand increased sharply.","The plan was canceled completely.","Everything finished earlier than expected."],"answer":0},{"id":92,"genre":"business","passage":"At 9 a.m., The technician submitted the policy. A few employees asked for additional guidance.","question":"Which inference is safest based on the passage?","choices":["The passage clearly states every detail.","The reader should be cautious about adding extra information not stated.","The passage is mainly about entertainment.","The passage proves the opposite conclusion."],"answer":1},{"id":93,"genre":"education","passage":"The client approved the report. As a result, the deadline was extended.","question":"What can be inferred from the passage?","choices":["The plan was canceled completely.","There was a delay in the plan.","Everything finished earlier than expected.","Demand increased sharply."],"answer":1},{"id":94,"genre":"education","passage":"The supervisor postponed the proposal. However, attendance declined afterward.","question":"What can be inferred from the passage?","choices":["There was a delay in the plan.","Demand increased sharply.","Everything finished earlier than expected.","The plan was canceled completely."],"answer":0},{"id":95,"genre":"education","passage":"The sales staff postponed the proposal. As a result, costs were controlled more strictly.","question":"What can be inferred from the passage?","choices":["There was a delay in the plan.","The plan was canceled completely.","Everything finished earlier than expected.","Demand increased sharply."],"answer":0},{"id":96,"genre":"economy","passage":"The sales staff reduced the training session due to budget limits. Responses did not arrive for two days.","question":"What does the passage suggest?","choices":["Prices will definitely rise tomorrow.","The organization plans to hire many new staff.","Demand has already doubled.","The organization is trying to control expenses."],"answer":3},{"id":97,"genre":"economy","passage":"The intern tested the policy. However, expenses rose faster than revenue.","question":"Which inference is safest based on the passage?","choices":["The reader should be cautious about adding extra information not stated.","The passage proves the opposite conclusion.","The passage clearly states every detail.","The passage is mainly about entertainment."],"answer":0},{"id":98,"genre":"business","passage":"The technician reduced the proposal due to budget limits. Responses did not arrive for two days.","question":"What does the passage suggest?","choices":["The organization is trying to control expenses.","The organization plans to hire many new staff.","Demand has already doubled.","Prices will definitely rise tomorrow."],"answer":0},{"id":99,"genre":"economy","passage":"The client tested the meeting because demand fell. The announcement surprised many staff members.","question":"Which inference is safest based on the passage?","choices":["The reader should be cautious about adding extra information not stated.","The passage clearly states every detail.","The passage is mainly about entertainment.","The passage proves the opposite conclusion."],"answer":0},{"id":100,"genre":"health","passage":"The manager reviewed the policy because of supply delays. Several points were unclear to some attendees.","question":"Why did they take that action?","choices":["They wanted to avoid mistakes.","They had no time to read it.","They were certain it was perfect.","They wanted to ignore the content."],"answer":0}];
+
 // ===== STATE =====
 const STORAGE_KEY = 'worddrill_data';
 let state = loadState();
@@ -717,7 +803,7 @@ function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach((b, i) => {
-    b.classList.toggle('active', ['home','quiz','writing','dashboard'][i] === name);
+    b.classList.toggle('active', ['home','quiz','writing','reading','dashboard'][i] === name);
   });
   if (name === 'dashboard') renderDashboard();
   if (name === 'home') renderHome();
@@ -1211,6 +1297,173 @@ document.addEventListener('keydown', e => {
     submitWriting();
   }
 });
+
+// ===== READING QUIZ =====
+function startReading(mode) {
+  const count = parseInt(document.getElementById('questionCount').value);
+  let pool = [...READING_QUESTIONS];
+
+  if (mode === 'weak') {
+    pool = pool.filter(q => {
+      const s = state.wordStats['read_' + q.id];
+      return s && s.wrong > 0 && (s.correct / (s.correct + s.wrong)) < 0.8;
+    });
+    if (pool.length === 0) { toast('苦手な問題がまだありません'); return; }
+  }
+
+  shuffle(pool);
+  pool = pool.slice(0, Math.min(count, pool.length));
+
+  currentSession = {
+    type: 'reading',
+    questions: pool,
+    current: 0,
+    correct: 0,
+    wrong: 0,
+    wrongWords: [],
+    answered: false
+  };
+
+  showScreen('reading');
+  document.getElementById('readingActive').style.display = '';
+  document.getElementById('readingResults').style.display = 'none';
+  renderReadingQuestion();
+}
+
+function renderReadingQuestion() {
+  const s = currentSession;
+  if (s.current >= s.questions.length) { showReadingResults(); return; }
+
+  s.answered = false;
+  const q = s.questions[s.current];
+  const pct = (s.current / s.questions.length * 100).toFixed(0);
+  document.getElementById('readProgressFill').style.width = pct + '%';
+  document.getElementById('readProgressText').textContent = `${s.current + 1} / ${s.questions.length}`;
+
+  const card = document.getElementById('readCard');
+  card.classList.remove('animate-in');
+  void card.offsetWidth;
+  card.classList.add('animate-in');
+
+  document.getElementById('readGenre').textContent = q.genre;
+  document.getElementById('readPassage').textContent = q.passage;
+  document.getElementById('readQuestion').textContent = q.question;
+
+  const keys = ['A', 'B', 'C', 'D'];
+  const container = document.getElementById('readChoices');
+  container.innerHTML = q.choices.map((c, i) => `
+    <button class="choice-btn" onclick="answerReading(this, ${i})">
+      <span class="choice-key">${keys[i]}</span>
+      <span>${c}</span>
+    </button>
+  `).join('');
+
+  document.getElementById('readExplanation').style.display = 'none';
+  document.getElementById('readNextBtn').style.display = 'none';
+}
+
+function answerReading(btn, chosen) {
+  if (currentSession.answered) return;
+  currentSession.answered = true;
+
+  const q = currentSession.questions[currentSession.current];
+  const isCorrect = chosen === q.answer;
+  const buttons = document.querySelectorAll('#readChoices .choice-btn');
+
+  buttons.forEach((b, i) => {
+    b.classList.add('disabled');
+    if (i === q.answer) b.classList.add('correct');
+  });
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    currentSession.correct++;
+  } else {
+    btn.classList.add('wrong');
+    currentSession.wrong++;
+    currentSession.wrongWords.push(q);
+  }
+
+  recordWord('read_' + q.id, isCorrect);
+
+  // Show explanation
+  document.getElementById('readExpText').textContent = getReadingExplanation(q);
+  document.getElementById('readExplanation').style.display = '';
+  document.getElementById('readNextBtn').style.display = '';
+}
+
+function nextReading() {
+  currentSession.current++;
+  renderReadingQuestion();
+}
+
+function getReadingExplanation(q) {
+  const correct = q.choices[q.answer];
+  const p = q.passage.toLowerCase();
+
+  // Extract main verb from passage
+  const verbMap = {
+    'updated':'updated（更新した）','launched':'launched（開始した）','replaced':'replaced（置き換えた）',
+    'tested':'tested（テストした）','reviewed':'reviewed（見直した）','investigated':'investigated（調査した）',
+    'reduced':'reduced（削減した）','expanded':'expanded（拡大した）','postponed':'postponed（延期した）',
+    'rejected':'rejected（却下した）','approved':'approved（承認した）','submitted':'submitted（提出した）',
+    'announced':'announced（発表した）','scheduled':'scheduled（予定した）'
+  };
+  let verb = '';
+  for (const [en, ja] of Object.entries(verbMap)) {
+    if (p.includes(en)) { verb = ja; break; }
+  }
+
+  if (correct.includes('making changes to improve'))
+    return `文中の ${verb} という行動から、製品やサービスを改善する取り組みが行われていると推論できます。他の選択肢は本文から直接導けない飛躍した内容です。`;
+  if (correct.includes('cautious about adding'))
+    return `この文章は限られた事実のみを述べています。安全な推論とは、本文に明示された情報だけに基づき、余分な仮定を加えないことです。他の選択肢は文章の内容を超えた断定をしています。`;
+  if (correct.includes('control expenses') || correct.includes('trying to control'))
+    return `文中の ${verb} という行動と文脈（予算制限・コスト管理等）から、組織が経費を抑制しようとしていることが読み取れます。`;
+  if (correct.includes('delay in the plan'))
+    return `文中の ${verb} という行動は、計画が予定通り進んでいないことを示しています。"As a result" 以降の記述もこの遅延を裏付けています。`;
+  if (correct.includes('avoid mistakes'))
+    return `文中の ${verb} という行動の目的は、問題やエラーを未然に防ぐためです。"because several errors were found" 等の理由句がこれを裏付けています。`;
+  if (correct.includes('Demand increased'))
+    return `文中の結果（registrations filled quickly 等）から、需要が高まったことが推論できます。`;
+
+  return `正解「${correct}」は、本文の内容から直接推論できる最も妥当な選択肢です。他の選択肢は文章に根拠がないか、過度な飛躍を含んでいます。`;
+}
+
+function showReadingResults() {
+  document.getElementById('readingActive').style.display = 'none';
+  document.getElementById('readingResults').style.display = '';
+
+  const s = currentSession;
+  const pct = Math.round(s.correct / s.questions.length * 100);
+  document.getElementById('readScore').textContent = pct + '%';
+  document.getElementById('readTotal').textContent = s.questions.length;
+  document.getElementById('readCorrectCount').textContent = s.correct;
+  document.getElementById('readWrongCount').textContent = s.wrong;
+
+  const listEl = document.getElementById('readWrongList');
+  if (s.wrongWords.length > 0) {
+    listEl.innerHTML = '<h3>間違えた問題</h3>' + s.wrongWords.map(q =>
+      `<div class="wrong-word-item"><span class="en" style="font-size:0.8rem">${q.passage.slice(0, 50)}...</span><span class="ja" style="font-size:0.75rem">${q.choices[q.answer].slice(0, 30)}...</span></div>`
+    ).join('');
+  } else {
+    listEl.innerHTML = '<h3 style="color:var(--correct)">パーフェクト！全問正解！</h3>';
+  }
+
+  recordSession();
+}
+
+function retryWrongReading() {
+  if (!currentSession || currentSession.wrongWords.length === 0) return;
+  const wrongQs = [...currentSession.wrongWords];
+  currentSession = {
+    type: 'reading', questions: wrongQs, current: 0,
+    correct: 0, wrong: 0, wrongWords: [], answered: false
+  };
+  document.getElementById('readingActive').style.display = '';
+  document.getElementById('readingResults').style.display = 'none';
+  renderReadingQuestion();
+}
 
 // ===== CLOUD SYNC =====
 const SYNC_CONFIG_KEY = 'worddrill_sync_config';
