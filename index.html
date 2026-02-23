@@ -1366,8 +1366,27 @@ function startReading(mode) {
     if (pool.length === 0) { toast('苦手な問題がまだありません'); return; }
   }
 
-  shuffle(pool);
-  pool = pool.slice(0, Math.min(count, pool.length));
+  // Separate into fresh (unseen/cooldown expired) and recent
+  const now = new Date();
+  const COOLDOWN_DAYS = 3;
+  const fresh = [];
+  const recent = [];
+  for (const q of pool) {
+    const s = state.wordStats['read_' + q.id];
+    if (!s || !s.lastSeen) {
+      fresh.push(q);
+    } else {
+      const diff = (now - new Date(s.lastSeen)) / (1000 * 60 * 60 * 24);
+      if (diff >= COOLDOWN_DAYS) fresh.push(q);
+      else recent.push(q);
+    }
+  }
+
+  // Prioritize fresh questions; fall back to recent if not enough
+  shuffle(fresh);
+  shuffle(recent);
+  const combined = fresh.length >= count ? fresh : [...fresh, ...recent];
+  pool = combined.slice(0, Math.min(count, combined.length));
 
   currentSession = {
     type: 'reading',
