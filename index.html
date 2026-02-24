@@ -130,7 +130,19 @@ body {
 #readConfirmBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* ===== Unknown Word Highlight ===== */
-.unknown-word { background: #ffeaa7; border-radius: 2px; cursor: pointer; }
+.unknown-word {
+  background: rgba(162,155,254,0.25); border-bottom: 1.5px solid var(--accent2);
+  border-radius: 2px; padding: 0 1px;
+}
+.mark-mode-btn {
+  font-size: 0.65rem; padding: 4px 10px; border-radius: 12px;
+  border: 1px solid var(--border); background: var(--surface2); color: var(--text2);
+  cursor: pointer; transition: all 0.15s; margin-left: auto; white-space: nowrap;
+}
+.mark-mode-btn.active {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
+.card-passage.mark-mode { cursor: crosshair; -webkit-user-select: none; user-select: none; }
 .card-question-top {
   font-size: 0.8rem; color: var(--accent2); font-weight: 600;
   text-align: left; padding: 0 4px; margin-bottom: 8px;
@@ -523,7 +535,7 @@ body {
         </div>
       </div>
     </div>
-    <div style="text-align:center;padding:16px 0 4px;font-size:0.65rem;color:var(--text3)">Ver 1.1.0</div>
+    <div style="text-align:center;padding:16px 0 4px;font-size:0.65rem;color:var(--text3)">Ver 1.2.0</div>
   </div>
 
   <!-- ===== QUIZ SCREEN ===== -->
@@ -627,7 +639,10 @@ body {
         <button class="btn btn-secondary" onclick="pauseReading()" style="padding:6px 12px;font-size:0.7rem;white-space:nowrap">中断</button>
       </div>
       <div class="card animate-in" id="readCard" style="text-align:left">
-        <div class="card-label">Passage</div>
+        <div style="display:flex;align-items:center;margin-bottom:4px">
+          <div class="card-label" style="margin-bottom:0">Passage</div>
+          <button class="mark-mode-btn" id="markModeBtn" onclick="toggleMarkMode()">単語マーク</button>
+        </div>
         <span class="genre-tag" id="readGenre"></span>
         <div class="card-question-top" id="readQuestionTop"></div>
         <div class="card-passage" id="readPassage"></div>
@@ -1496,7 +1511,10 @@ function renderReadingQuestion() {
   document.getElementById('readQuestion').textContent = q.question;
   document.getElementById('readQuestionTop').textContent = q.question;
 
-  // Setup long-press for unknown words
+  // Reset mark mode & setup tap handler for unknown words
+  markModeActive = false;
+  document.getElementById('markModeBtn').classList.remove('active');
+  document.getElementById('readPassage').classList.remove('mark-mode');
   setupPassageLongPress();
 
   const keys = ['A', 'B', 'C', 'D'];
@@ -1579,11 +1597,19 @@ function nextReading() {
   renderReadingQuestion();
 }
 
-// ===== UNKNOWN WORD LONG-PRESS =====
+// ===== UNKNOWN WORD MARK MODE =====
+let markModeActive = false;
+
+function toggleMarkMode() {
+  markModeActive = !markModeActive;
+  const btn = document.getElementById('markModeBtn');
+  const passage = document.getElementById('readPassage');
+  btn.classList.toggle('active', markModeActive);
+  passage.classList.toggle('mark-mode', markModeActive);
+}
+
 function setupPassageLongPress() {
   const el = document.getElementById('readPassage');
-  let timer = null;
-  let startX = 0, startY = 0;
 
   function getWordAtPoint(x, y) {
     let range;
@@ -1600,7 +1626,6 @@ function setupPassageLongPress() {
     const textNode = range.startContainer;
     const text = textNode.textContent;
     const offset = range.startOffset;
-    // Find word boundaries
     let start = offset, end = offset;
     while (start > 0 && /\w/.test(text[start - 1])) start--;
     while (end < text.length && /\w/.test(text[end])) end++;
@@ -1608,12 +1633,13 @@ function setupPassageLongPress() {
     return { word: text.slice(start, end), textNode, start, end };
   }
 
-  function handleLongPress(x, y) {
+  function handleTap(x, y) {
+    if (!markModeActive) return;
     const info = getWordAtPoint(x, y);
     if (!info) return;
     const word = info.word.toLowerCase();
 
-    // Check if already highlighted — toggle off
+    // Toggle off if already highlighted
     if (info.textNode.parentElement && info.textNode.parentElement.classList.contains('unknown-word')) {
       const span = info.textNode.parentElement;
       span.replaceWith(document.createTextNode(span.textContent));
@@ -1632,32 +1658,10 @@ function setupPassageLongPress() {
     addToUnknownWords(word);
   }
 
-  el.addEventListener('touchstart', (e) => {
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    timer = setTimeout(() => {
-      e.preventDefault();
-      handleLongPress(startX, startY);
-    }, 500);
-  }, { passive: false });
-
-  el.addEventListener('touchmove', (e) => {
-    const dx = e.touches[0].clientX - startX;
-    const dy = e.touches[0].clientY - startY;
-    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-      clearTimeout(timer);
-      timer = null;
-    }
-  });
-
-  el.addEventListener('touchend', () => {
-    clearTimeout(timer);
-    timer = null;
-  });
-
-  el.addEventListener('touchcancel', () => {
-    clearTimeout(timer);
-    timer = null;
+  el.addEventListener('click', (e) => {
+    if (!markModeActive) return;
+    e.preventDefault();
+    handleTap(e.clientX, e.clientY);
   });
 }
 
