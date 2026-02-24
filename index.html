@@ -449,7 +449,7 @@ body {
   <!-- ===== HOME SCREEN ===== -->
   <div class="screen active" id="screen-home">
     <div class="dash-section">
-      <h2>今日の学習</h2>
+      <h2>今日の学習 — 単語</h2>
       <div class="dash-grid">
         <div class="dash-card accent">
           <div class="value" id="homeTodayCount">0</div>
@@ -458,6 +458,23 @@ body {
         <div class="dash-card green">
           <div class="value" id="homeTodayAcc">-</div>
           <div class="label">正答率</div>
+        </div>
+      </div>
+    </div>
+    <div class="dash-section" id="homeReadingSection" style="display:none">
+      <h2>今日の学習 — 読解</h2>
+      <div class="dash-grid" style="grid-template-columns:1fr 1fr 1fr">
+        <div class="dash-card accent">
+          <div class="value" id="homeReadCount">0</div>
+          <div class="label">問題数</div>
+        </div>
+        <div class="dash-card green">
+          <div class="value" id="homeReadAcc">-</div>
+          <div class="label">正答率</div>
+        </div>
+        <div class="dash-card yellow">
+          <div class="value" id="homeReadTime">-</div>
+          <div class="label">平均回答時間</div>
         </div>
       </div>
     </div>
@@ -892,7 +909,8 @@ function defaultState() {
     wordStats: {},  // { "implement": { correct: 0, wrong: 0, lastSeen: null } }
     dailyLog: {},   // { "2025-01-15": { sessions: 1, correct: 10, wrong: 3, words: ["implement",...] } }
     settings: { questionCount: 20 },
-    unknownWords: [] // [{ word: "diversion", addedAt: "2026-02-24" }, ...]
+    unknownWords: [], // [{ word: "diversion", addedAt: "2026-02-24" }, ...]
+    readingDailyLog: {} // { "2026-02-24": { correct: 3, wrong: 1, times: [45, 30, 60, 25] } }
   };
 }
 
@@ -931,6 +949,25 @@ function renderHome() {
   document.getElementById('homeTodayCount').textContent = d.words ? d.words.length : 0;
   const total = d.correct + d.wrong;
   document.getElementById('homeTodayAcc').textContent = total > 0 ? Math.round(d.correct / total * 100) + '%' : '-';
+  // Reading daily stats
+  if (!state.readingDailyLog) state.readingDailyLog = {};
+  const rl = state.readingDailyLog[today()];
+  const readSection = document.getElementById('homeReadingSection');
+  if (rl && (rl.correct + rl.wrong) > 0) {
+    readSection.style.display = '';
+    const rTotal = rl.correct + rl.wrong;
+    document.getElementById('homeReadCount').textContent = rTotal;
+    document.getElementById('homeReadAcc').textContent = Math.round(rl.correct / rTotal * 100) + '%';
+    if (rl.times && rl.times.length > 0) {
+      const avg = Math.round(rl.times.reduce((a, b) => a + b, 0) / rl.times.length);
+      document.getElementById('homeReadTime').textContent = avg + '秒';
+    } else {
+      document.getElementById('homeReadTime').textContent = '-';
+    }
+  } else {
+    readSection.style.display = 'none';
+  }
+
   updateStreak();
   checkSavedSession();
   // Show/hide unknown words card on home
@@ -1533,10 +1570,10 @@ function renderReadingQuestion() {
   document.getElementById('readQuestion').textContent = q.question;
   document.getElementById('readQuestionTop').textContent = q.question;
 
-  // Reset mark mode & setup tap handler for unknown words
-  markModeActive = false;
-  document.getElementById('markModeBtn').classList.remove('active');
-  document.getElementById('readPassage').classList.remove('mark-mode');
+  // Enable mark mode by default & setup tap handler for unknown words
+  markModeActive = true;
+  document.getElementById('markModeBtn').classList.add('active');
+  document.getElementById('readPassage').classList.add('mark-mode');
   setupPassageLongPress();
 
   const keys = ['A', 'B', 'C', 'D'];
@@ -1604,6 +1641,15 @@ function answerReading(btn, chosen) {
   const elapsed = Math.round((Date.now() - currentSession.questionStartTime) / 1000);
   if (!currentSession.times) currentSession.times = [];
   currentSession.times.push(elapsed);
+
+  // Record to reading daily log
+  const rd = today();
+  if (!state.readingDailyLog) state.readingDailyLog = {};
+  if (!state.readingDailyLog[rd]) state.readingDailyLog[rd] = { correct: 0, wrong: 0, times: [] };
+  const rl = state.readingDailyLog[rd];
+  if (isCorrect) rl.correct++; else rl.wrong++;
+  rl.times.push(elapsed);
+  saveState();
 
   // Show evidence + explanation
   document.getElementById('readEvidence').textContent = q.evidence || '';
