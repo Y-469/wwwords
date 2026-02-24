@@ -1551,7 +1551,7 @@ function renderReadingQuestion() {
   if (s.current >= s.questions.length) { showReadingResults(); return; }
 
   // Auto-scroll to top
-  document.getElementById('readCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 
   s.answered = false;
   s.selectedChoice = null;
@@ -1677,8 +1677,15 @@ function toggleMarkMode() {
   passage.classList.toggle('mark-mode', markModeActive);
 }
 
+let _passageClickHandler = null;
+
 function setupPassageLongPress() {
   const el = document.getElementById('readPassage');
+
+  // Remove previous listener to prevent duplicates
+  if (_passageClickHandler) {
+    el.removeEventListener('click', _passageClickHandler);
+  }
 
   function getWordAtPoint(x, y) {
     let range;
@@ -1727,11 +1734,12 @@ function setupPassageLongPress() {
     addToUnknownWords(word);
   }
 
-  el.addEventListener('click', (e) => {
+  _passageClickHandler = (e) => {
     if (!markModeActive) return;
     e.preventDefault();
     handleTap(e.clientX, e.clientY);
-  });
+  };
+  el.addEventListener('click', _passageClickHandler);
 }
 
 function addToUnknownWords(word) {
