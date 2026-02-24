@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>WordDrill - 英単語トレーニング</title>
 <style>
 :root {
@@ -118,9 +121,31 @@ body {
 .choice-btn.correct .choice-key { background: var(--correct); color: #fff; }
 .choice-btn.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
 .choice-btn.wrong .choice-key { background: var(--wrong); color: #fff; }
+.choice-btn.selected { border-color: var(--accent); background: rgba(108,92,231,0.08); }
+.choice-btn.selected .choice-key { background: var(--accent); color: #fff; }
 .choice-btn.disabled { pointer-events: none; opacity: 0.5; }
 .choice-btn.disabled.correct { opacity: 1; }
 .choice-btn.disabled.wrong { opacity: 1; }
+#readConfirmBtn { margin-top: 8px; width: 100%; }
+#readConfirmBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ===== Unknown Word Highlight ===== */
+.unknown-word { background: #ffeaa7; border-radius: 2px; cursor: pointer; }
+.card-question-top {
+  font-size: 0.8rem; color: var(--accent2); font-weight: 600;
+  text-align: left; padding: 0 4px; margin-bottom: 8px;
+}
+.unknown-words-section { margin-top: 8px; }
+.unknown-words-section h3 { font-size: 0.85rem; margin: 0 0 8px; }
+.unknown-word-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); margin-bottom: 6px; font-size: 0.85rem;
+}
+.unknown-word-item .del-btn {
+  background: none; border: none; color: var(--wrong); cursor: pointer;
+  font-size: 0.75rem; padding: 2px 6px;
+}
 
 /* ===== Writing Mode ===== */
 .writing-input-area { margin-bottom: 16px; }
@@ -478,6 +503,11 @@ body {
       </div>
     </div>
 
+    <div class="dash-section unknown-words-section" id="unknownWordsSection" style="display:none">
+      <h2>わからなかった単語</h2>
+      <div id="unknownWordsList"></div>
+    </div>
+
     <div class="dash-section">
       <h2>単語数設定</h2>
       <div class="range-group">
@@ -493,6 +523,7 @@ body {
         </div>
       </div>
     </div>
+    <div style="text-align:center;padding:16px 0 4px;font-size:0.65rem;color:var(--text3)">Ver 1.1.0</div>
   </div>
 
   <!-- ===== QUIZ SCREEN ===== -->
@@ -598,10 +629,12 @@ body {
       <div class="card animate-in" id="readCard" style="text-align:left">
         <div class="card-label">Passage</div>
         <span class="genre-tag" id="readGenre"></span>
+        <div class="card-question-top" id="readQuestionTop"></div>
         <div class="card-passage" id="readPassage"></div>
         <div class="card-question" id="readQuestion"></div>
       </div>
       <div class="choices" id="readChoices"></div>
+      <button class="btn btn-primary" id="readConfirmBtn" disabled onclick="confirmReading()">回答する</button>
       <div class="read-explanation" id="readExplanation" style="display:none">
         <div class="exp-label">解説</div>
         <div class="exp-evidence" id="readEvidence"></div>
@@ -831,7 +864,8 @@ function defaultState() {
   return {
     wordStats: {},  // { "implement": { correct: 0, wrong: 0, lastSeen: null } }
     dailyLog: {},   // { "2025-01-15": { sessions: 1, correct: 10, wrong: 3, words: ["implement",...] } }
-    settings: { questionCount: 20 }
+    settings: { questionCount: 20 },
+    unknownWords: [] // [{ word: "diversion", addedAt: "2026-02-24" }, ...]
   };
 }
 
@@ -871,6 +905,32 @@ function renderHome() {
   document.getElementById('homeTodayAcc').textContent = total > 0 ? Math.round(d.correct / total * 100) + '%' : '-';
   updateStreak();
   checkSavedSession();
+  renderUnknownWords();
+}
+
+function renderUnknownWords() {
+  if (!state.unknownWords) state.unknownWords = [];
+  const section = document.getElementById('unknownWordsSection');
+  const list = document.getElementById('unknownWordsList');
+  if (state.unknownWords.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = '';
+  list.innerHTML = state.unknownWords.map((item, i) =>
+    `<div class="unknown-word-item">
+      <span>${item.word}</span>
+      <span style="font-size:0.7rem;color:var(--text3)">${item.addedAt}</span>
+      <button class="del-btn" onclick="removeUnknownWord(${i})">削除</button>
+    </div>`
+  ).join('');
+}
+
+function removeUnknownWord(index) {
+  if (!state.unknownWords) return;
+  state.unknownWords.splice(index, 1);
+  saveState();
+  renderUnknownWords();
 }
 
 function updateStreak() {
@@ -1415,7 +1475,11 @@ function renderReadingQuestion() {
   const s = currentSession;
   if (s.current >= s.questions.length) { showReadingResults(); return; }
 
+  // Auto-scroll to top
+  document.getElementById('readCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
   s.answered = false;
+  s.selectedChoice = null;
   s.questionStartTime = Date.now();
   const q = s.questions[s.current];
   const pct = (s.current / s.questions.length * 100).toFixed(0);
@@ -1430,29 +1494,57 @@ function renderReadingQuestion() {
   document.getElementById('readGenre').textContent = q.genre.replace(/_/g,' ') + ' / ' + q.style.replace(/_/g,' ');
   document.getElementById('readPassage').textContent = q.passage;
   document.getElementById('readQuestion').textContent = q.question;
+  document.getElementById('readQuestionTop').textContent = q.question;
+
+  // Setup long-press for unknown words
+  setupPassageLongPress();
 
   const keys = ['A', 'B', 'C', 'D'];
   const container = document.getElementById('readChoices');
   container.innerHTML = q.choices.map((c, i) => `
-    <button class="choice-btn" onclick="answerReading(this, ${i})">
+    <button class="choice-btn" onclick="selectReading(this, ${i})">
       <span class="choice-key">${keys[i]}</span>
       <span>${highlightStrongWords(c)}</span>
     </button>
   `).join('');
 
+  // Reset confirm button
+  const confirmBtn = document.getElementById('readConfirmBtn');
+  confirmBtn.disabled = true;
+  confirmBtn.style.display = '';
+
   document.getElementById('readExplanation').style.display = 'none';
   document.getElementById('readNextBtn').style.display = 'none';
+}
+
+function selectReading(btn, chosen) {
+  if (currentSession.answered) return;
+  // Deselect all, then select this one
+  document.querySelectorAll('#readChoices .choice-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  currentSession.selectedChoice = chosen;
+  currentSession.selectedBtn = btn;
+  document.getElementById('readConfirmBtn').disabled = false;
+}
+
+function confirmReading() {
+  if (currentSession.answered || currentSession.selectedChoice === null) return;
+  answerReading(currentSession.selectedBtn, currentSession.selectedChoice);
 }
 
 function answerReading(btn, chosen) {
   if (currentSession.answered) return;
   currentSession.answered = true;
 
+  // Hide confirm button
+  document.getElementById('readConfirmBtn').style.display = 'none';
+
   const q = currentSession.questions[currentSession.current];
   const isCorrect = chosen === q.answer;
   const buttons = document.querySelectorAll('#readChoices .choice-btn');
 
   buttons.forEach((b, i) => {
+    b.classList.remove('selected');
     b.classList.add('disabled');
     if (i === q.answer) b.classList.add('correct');
   });
@@ -1485,6 +1577,101 @@ function answerReading(btn, chosen) {
 function nextReading() {
   currentSession.current++;
   renderReadingQuestion();
+}
+
+// ===== UNKNOWN WORD LONG-PRESS =====
+function setupPassageLongPress() {
+  const el = document.getElementById('readPassage');
+  let timer = null;
+  let startX = 0, startY = 0;
+
+  function getWordAtPoint(x, y) {
+    let range;
+    if (document.caretRangeFromPoint) {
+      range = document.caretRangeFromPoint(x, y);
+    } else if (document.caretPositionFromPoint) {
+      const pos = document.caretPositionFromPoint(x, y);
+      if (!pos) return null;
+      range = document.createRange();
+      range.setStart(pos.offsetNode, pos.offset);
+      range.setEnd(pos.offsetNode, pos.offset);
+    }
+    if (!range || !range.startContainer || range.startContainer.nodeType !== 3) return null;
+    const textNode = range.startContainer;
+    const text = textNode.textContent;
+    const offset = range.startOffset;
+    // Find word boundaries
+    let start = offset, end = offset;
+    while (start > 0 && /\w/.test(text[start - 1])) start--;
+    while (end < text.length && /\w/.test(text[end])) end++;
+    if (start === end) return null;
+    return { word: text.slice(start, end), textNode, start, end };
+  }
+
+  function handleLongPress(x, y) {
+    const info = getWordAtPoint(x, y);
+    if (!info) return;
+    const word = info.word.toLowerCase();
+
+    // Check if already highlighted — toggle off
+    if (info.textNode.parentElement && info.textNode.parentElement.classList.contains('unknown-word')) {
+      const span = info.textNode.parentElement;
+      span.replaceWith(document.createTextNode(span.textContent));
+      el.normalize();
+      removeFromUnknownWords(word);
+      return;
+    }
+
+    // Wrap word in highlight span
+    const range = document.createRange();
+    range.setStart(info.textNode, info.start);
+    range.setEnd(info.textNode, info.end);
+    const span = document.createElement('span');
+    span.className = 'unknown-word';
+    range.surroundContents(span);
+    addToUnknownWords(word);
+  }
+
+  el.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    timer = setTimeout(() => {
+      e.preventDefault();
+      handleLongPress(startX, startY);
+    }, 500);
+  }, { passive: false });
+
+  el.addEventListener('touchmove', (e) => {
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  });
+
+  el.addEventListener('touchend', () => {
+    clearTimeout(timer);
+    timer = null;
+  });
+
+  el.addEventListener('touchcancel', () => {
+    clearTimeout(timer);
+    timer = null;
+  });
+}
+
+function addToUnknownWords(word) {
+  if (!state.unknownWords) state.unknownWords = [];
+  if (state.unknownWords.some(w => w.word === word)) return;
+  state.unknownWords.push({ word, addedAt: today() });
+  saveState();
+}
+
+function removeFromUnknownWords(word) {
+  if (!state.unknownWords) return;
+  state.unknownWords = state.unknownWords.filter(w => w.word !== word);
+  saveState();
 }
 
 function getReadingExplanation(q) {
