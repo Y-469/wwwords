@@ -461,7 +461,7 @@ body {
         </div>
       </div>
     </div>
-    <div class="dash-section" id="homeReadingSection" style="display:none">
+    <div class="dash-section" id="homeReadingSection">
       <h2>今日の学習 — 読解</h2>
       <div class="dash-grid" style="grid-template-columns:1fr 1fr 1fr">
         <div class="dash-card accent">
@@ -954,7 +954,6 @@ function renderHome() {
   const rl = state.readingDailyLog[today()];
   const readSection = document.getElementById('homeReadingSection');
   if (rl && (rl.correct + rl.wrong) > 0) {
-    readSection.style.display = '';
     const rTotal = rl.correct + rl.wrong;
     document.getElementById('homeReadCount').textContent = rTotal;
     document.getElementById('homeReadAcc').textContent = Math.round(rl.correct / rTotal * 100) + '%';
@@ -965,7 +964,9 @@ function renderHome() {
       document.getElementById('homeReadTime').textContent = '-';
     }
   } else {
-    readSection.style.display = 'none';
+    document.getElementById('homeReadCount').textContent = '0';
+    document.getElementById('homeReadAcc').textContent = '-';
+    document.getElementById('homeReadTime').textContent = '-';
   }
 
   updateStreak();
