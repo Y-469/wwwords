@@ -1550,8 +1550,10 @@ function renderReadingQuestion() {
   const s = currentSession;
   if (s.current >= s.questions.length) { showReadingResults(); return; }
 
-  // Auto-scroll to top
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Auto-scroll to top (immediate + smooth fallback for mobile compatibility)
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
 
   s.answered = false;
   s.selectedChoice = null;
