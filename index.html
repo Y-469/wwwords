@@ -512,12 +512,11 @@ body {
           <h3>記述モード - 苦手復習</h3>
           <p>間違えた単語のスペル練習</p>
         </div>
+        <div class="mode-card" onclick="showScreen('wordlist')" id="unknownWordsCard" style="display:none">
+          <h3>わからなかった単語 <span id="unknownWordsCount" style="font-size:0.75rem;color:var(--accent2)"></span></h3>
+          <p>読解パッセージでマークした単語の一覧</p>
+        </div>
       </div>
-    </div>
-
-    <div class="dash-section unknown-words-section" id="unknownWordsSection" style="display:none">
-      <h2>わからなかった単語</h2>
-      <div id="unknownWordsList"></div>
     </div>
 
     <div class="dash-section">
@@ -535,7 +534,7 @@ body {
         </div>
       </div>
     </div>
-    <div style="text-align:center;padding:16px 0 4px;font-size:0.65rem;color:var(--text3)">Ver 1.2.0</div>
+    <div style="text-align:center;padding:16px 0 4px;font-size:0.65rem;color:var(--text3)">Ver 1.3.0</div>
   </div>
 
   <!-- ===== QUIZ SCREEN ===== -->
@@ -735,6 +734,19 @@ body {
       <div class="word-list" id="wordList"></div>
     </div>
   </div>
+
+  <!-- ===== WORDLIST SCREEN ===== -->
+  <div class="screen" id="screen-wordlist">
+    <div class="dash-section">
+      <h2>わからなかった単語</h2>
+      <p style="font-size:0.75rem;color:var(--text2);margin:0 0 12px">読解パッセージでマークした単語</p>
+      <div id="unknownWordsList"></div>
+      <div id="unknownWordsEmpty" style="text-align:center;color:var(--text3);font-size:0.85rem;padding:24px 0">まだ単語がありません。<br>読解モードで「単語マーク」を使うと追加されます。</div>
+    </div>
+    <div class="actions" style="margin-top:12px">
+      <button class="btn btn-secondary" onclick="showScreen('home')">ホームに戻る</button>
+    </div>
+  </div>
 </div>
 
 <!-- Sync Modal -->
@@ -910,6 +922,7 @@ function showScreen(name) {
   });
   if (name === 'dashboard') renderDashboard();
   if (name === 'home') renderHome();
+  if (name === 'wordlist') renderUnknownWords();
 }
 
 // ===== HOME =====
@@ -920,18 +933,27 @@ function renderHome() {
   document.getElementById('homeTodayAcc').textContent = total > 0 ? Math.round(d.correct / total * 100) + '%' : '-';
   updateStreak();
   checkSavedSession();
-  renderUnknownWords();
+  // Show/hide unknown words card on home
+  if (!state.unknownWords) state.unknownWords = [];
+  const uwCard = document.getElementById('unknownWordsCard');
+  if (state.unknownWords.length > 0) {
+    uwCard.style.display = '';
+    document.getElementById('unknownWordsCount').textContent = `(${state.unknownWords.length}語)`;
+  } else {
+    uwCard.style.display = 'none';
+  }
 }
 
 function renderUnknownWords() {
   if (!state.unknownWords) state.unknownWords = [];
-  const section = document.getElementById('unknownWordsSection');
   const list = document.getElementById('unknownWordsList');
+  const empty = document.getElementById('unknownWordsEmpty');
   if (state.unknownWords.length === 0) {
-    section.style.display = 'none';
+    list.innerHTML = '';
+    empty.style.display = '';
     return;
   }
-  section.style.display = '';
+  empty.style.display = 'none';
   list.innerHTML = state.unknownWords.map((item, i) =>
     `<div class="unknown-word-item">
       <span>${item.word}</span>
