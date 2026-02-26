@@ -822,6 +822,7 @@ body {
           <button class="mark-mode-btn" id="markModeBtn" onclick="toggleMarkMode()">単語マーク</button>
         </div>
         <span class="genre-tag" id="readGenre"></span>
+        <span class="genre-tag" id="readQId" style="background:#e3e8f0;color:#555;margin-left:4px"></span>
         <div class="card-question-top" id="readQuestionTop"></div>
         <div class="card-passage" id="readPassage"></div>
         <div class="card-question" id="readQuestion"></div>
@@ -892,6 +893,7 @@ body {
       <div class="card animate-in" id="clozeCard" style="text-align:left">
         <div class="card-label">空欄補充</div>
         <span class="cloze-category-tag" id="clozeCategory"></span>
+        <span class="genre-tag" id="clozeQId" style="background:#e3e8f0;color:#555;margin-left:4px"></span>
         <div class="cloze-sentence" id="clozeSentence"></div>
       </div>
       <div class="choices" id="clozeChoices"></div>
@@ -1168,6 +1170,102 @@ const WORDS = [
   {"en":"refund","ja":"返金"},
   {"en":"replace","ja":"交換する"},
   {"en":"emergency","ja":"緊急事態"},
+  {"en":"appraisal","ja":"評価・査定"},
+  {"en":"authorize","ja":"認可する"},
+  {"en":"bilateral","ja":"二国間の"},
+  {"en":"blueprint","ja":"設計図・計画"},
+  {"en":"bottleneck","ja":"障害・ボトルネック"},
+  {"en":"briefing","ja":"簡潔な報告・ブリーフィング"},
+  {"en":"bureaucracy","ja":"官僚制度"},
+  {"en":"capitalize","ja":"資本化する・活用する"},
+  {"en":"clause","ja":"条項"},
+  {"en":"collaborate","ja":"協力する"},
+  {"en":"compensate","ja":"補償する"},
+  {"en":"competent","ja":"有能な"},
+  {"en":"confidential","ja":"機密の"},
+  {"en":"consolidate","ja":"統合する"},
+  {"en":"constraint","ja":"制約"},
+  {"en":"consultation","ja":"相談・協議"},
+  {"en":"credential","ja":"資格・証明書"},
+  {"en":"deficit","ja":"赤字・不足"},
+  {"en":"delegate","ja":"委任する・代表者"},
+  {"en":"demographic","ja":"人口統計の"},
+  {"en":"deteriorate","ja":"悪化する"},
+  {"en":"disclose","ja":"開示する"},
+  {"en":"dispatch","ja":"発送する・派遣する"},
+  {"en":"downturn","ja":"景気後退・下降"},
+  {"en":"elaborate","ja":"詳述する・精巧な"},
+  {"en":"embargo","ja":"禁輸・出入港禁止"},
+  {"en":"endorse","ja":"承認する・推薦する"},
+  {"en":"entrepreneur","ja":"起業家"},
+  {"en":"exempt","ja":"免除された"},
+  {"en":"expenditure","ja":"支出・経費"},
+  {"en":"expertise","ja":"専門知識"},
+  {"en":"fabricate","ja":"製造する・捏造する"},
+  {"en":"foreclose","ja":"差し押さえる"},
+  {"en":"forfeit","ja":"没収される・喪失する"},
+  {"en":"gratuity","ja":"チップ・謝礼"},
+  {"en":"grievance","ja":"苦情・不満"},
+  {"en":"affiliate","ja":"関連会社"},
+  {"en":"hierarchy","ja":"階層・序列"},
+  {"en":"hypothetical","ja":"仮説の"},
+  {"en":"impair","ja":"損なう"},
+  {"en":"inaugurate","ja":"就任させる・開始する"},
+  {"en":"incorporate","ja":"法人化する・組み込む"},
+  {"en":"increment","ja":"増加・増分"},
+  {"en":"inflation","ja":"インフレーション"},
+  {"en":"interim","ja":"暫定の・中間の"},
+  {"en":"invoice","ja":"請求書"},
+  {"en":"itinerary","ja":"旅程・行程表"},
+  {"en":"keynote","ja":"基調・基調講演"},
+  {"en":"lease","ja":"賃貸借契約"},
+  {"en":"legitimate","ja":"合法的な・正当な"},
+  {"en":"lucrative","ja":"収益性の高い"},
+  {"en":"mediator","ja":"仲介者・調停者"},
+  {"en":"memorandum","ja":"覚書・メモ"},
+  {"en":"mitigate","ja":"軽減する・緩和する"},
+  {"en":"mortgage","ja":"住宅ローン・抵当"},
+  {"en":"municipal","ja":"市の・地方自治体の"},
+  {"en":"nondisclosure","ja":"秘密保持の"},
+  {"en":"nominal","ja":"名目上の・わずかな"},
+  {"en":"obligatory","ja":"義務的な"},
+  {"en":"operational","ja":"運営上の・稼働中の"},
+  {"en":"optimize","ja":"最適化する"},
+  {"en":"orientation","ja":"オリエンテーション・方向性"},
+  {"en":"paradigm","ja":"パラダイム・模範"},
+  {"en":"payroll","ja":"給与支払名簿"},
+  {"en":"pension","ja":"年金"},
+  {"en":"philanthropy","ja":"慈善活動"},
+  {"en":"plenary","ja":"全体の・本会議の"},
+  {"en":"portfolio","ja":"ポートフォリオ・作品集"},
+  {"en":"pragmatic","ja":"実用的な"},
+  {"en":"precedent","ja":"前例"},
+  {"en":"privilege","ja":"特権"},
+  {"en":"probation","ja":"試用期間"},
+  {"en":"delegation","ja":"代表団/委任"},
+  {"en":"projections","ja":"予測・見通し"},
+  {"en":"proprietor","ja":"所有者・経営者"},
+  {"en":"prospectus","ja":"目論見書・案内書"},
+  {"en":"ratify","ja":"批准する・承認する"},
+  {"en":"reimburse","ja":"払い戻す・弁償する"},
+  {"en":"remittance","ja":"送金"},
+  {"en":"renovation","ja":"改装・刷新"},
+  {"en":"repository","ja":"保管場所・リポジトリ"},
+  {"en":"requisition","ja":"要求書・請求"},
+  {"en":"restructure","ja":"再構築する"},
+  {"en":"scrutinize","ja":"精査する"},
+  {"en":"seminar","ja":"セミナー・研究会"},
+  {"en":"solvent","ja":"支払い能力のある"},
+  {"en":"stipulate","ja":"規定する・明記する"},
+  {"en":"subsidy","ja":"補助金"},
+  {"en":"symposium","ja":"シンポジウム・討論会"},
+  {"en":"tenure","ja":"在職期間・終身在職権"},
+  {"en":"terminate","ja":"終了する・解雇する"},
+  {"en":"testimony","ja":"証言"},
+  {"en":"trademark","ja":"商標"},
+  {"en":"transparency","ja":"透明性"},
+  {"en":"tribunal","ja":"裁判所・審判"},
+  {"en":"warranty","ja":"保証・保証書"},
   {"en":"damage","ja":"損害"},
   {"en":"repair","ja":"修理する"}
 ];
@@ -1276,7 +1374,207 @@ const CLOZE_QUESTIONS = [
   {id:97, sentence:"The company offered a generous _____ package to employees affected by the downsizing.", choices:["severance","service","surveillance","survival"], answer:0, explanation:"severance package = 退職手当パッケージ。人員削減の影響を受けた従業員に手厚い「退職手当」を提供した。", category:"vocab", difficulty:3},
   {id:98, sentence:"The conference room can _____ up to 50 people.", choices:["accommodate","accompany","accomplish","accumulate"], answer:0, explanation:"accommodate = 収容する。会議室は最大50名を「収容できる」。accompanyは「同行する」、accomplishは「達成する」。", category:"vocab", difficulty:2},
   {id:99, sentence:"The report must be proofread carefully _____ it is sent to the client.", choices:["before","after","since","until"], answer:0, explanation:"before = ～する前に。報告書はクライアントに送る「前に」注意深く校正しなければならない。", category:"grammar", difficulty:1},
-  {id:100, sentence:"The company's decision to relocate was met with _____ opposition from local employees.", choices:["considerable","considerate","considering","considered"], answer:0, explanation:"considerable = かなりの（形容詞）。移転の決定が地元従業員からの「かなりの」反対にあった。considerateは「思いやりのある」。", category:"grammar_vocab", difficulty:2}
+  {id:100, sentence:"The company's decision to relocate was met with _____ opposition from local employees.", choices:["considerable","considerate","considering","considered"], answer:0, explanation:"considerable = かなりの（形容詞）。移転の決定が地元従業員からの「かなりの」反対にあった。considerateは「思いやりのある」。", category:"grammar_vocab", difficulty:2},
+  {id:101, sentence:"The manager asked all employees to _____ the new safety regulations by the end of the month.", choices:["comply with","comply to","comply for","comply at"], answer:0, explanation:"「comply with」で「～に従う」という意味。comply は with と結びつく。to/for/at は不適切な前置詞。", category:"grammar_vocab", difficulty:1},
+  {id:102, sentence:"We need to _____ a meeting to discuss the quarterly sales figures.", choices:["arrange","array","arise","arrest"], answer:0, explanation:"「arrange a meeting」で「会議を手配する」。array は配列、arise は生じる、arrest は逮捕する。", category:"vocab", difficulty:1},
+  {id:103, sentence:"The report was _____ by the entire board of directors before it was published.", choices:["reviewed","reviewing","review","reviews"], answer:0, explanation:"受動態「was reviewed」が正しい。主語 report は review される側なので過去分詞が必要。", category:"grammar", difficulty:1},
+  {id:104, sentence:"If the shipment _____ on time, we would not have lost the client.", choices:["had arrived","has arrived","would arrive","arrives"], answer:0, explanation:"仮定法過去完了の条件節には「had + 過去分詞」を使う。過去の事実に反する仮定を表す。", category:"grammar", difficulty:2},
+  {id:105, sentence:"Please find _____ the documents you requested during our last conversation.", choices:["attached","attaching","attach","attachment"], answer:0, explanation:"ビジネスメールで「添付の」を意味する定型表現。「Please find attached」は頻出表現。", category:"vocab", difficulty:1},
+  {id:106, sentence:"The new policy will have a significant _____ on employee productivity.", choices:["effect","affect","effective","affection"], answer:0, explanation:"名詞が必要なので「effect」（影響）が正解。affect は動詞、effective は形容詞、affection は愛情。", category:"vocab", difficulty:2},
+  {id:107, sentence:"She is responsible _____ overseeing the marketing department's annual budget.", choices:["for","of","to","with"], answer:0, explanation:"「responsible for」で「～に責任がある」。responsible の後には for が来る。", category:"grammar", difficulty:1},
+  {id:108, sentence:"The CEO _____ the importance of innovation during his keynote speech.", choices:["emphasized","emphasis","emphatic","emphasize"], answer:0, explanation:"過去形の動詞が必要。emphasized（強調した）が正解。emphasis は名詞、emphatic は形容詞。", category:"grammar_vocab", difficulty:1},
+  {id:109, sentence:"We should _____ the deadline to allow more time for quality testing.", choices:["extend","expand","extent","expense"], answer:0, explanation:"「extend the deadline」で「締切を延長する」。expand は拡大する、extent は範囲（名詞）、expense は費用。", category:"vocab", difficulty:2},
+  {id:110, sentence:"The contract, _____ was signed last week, includes a non-disclosure agreement.", choices:["which","who","whom","whose"], answer:0, explanation:"先行詞が contract（物）なので関係代名詞は which。who/whom は人に使う。whose は所有格。", category:"grammar", difficulty:1},
+  {id:111, sentence:"Our company has decided to _____ a new strategy for entering the Asian market.", choices:["adopt","adapt","adept","adult"], answer:0, explanation:"「adopt a strategy」で「戦略を採用する」。adapt は適応させる、adept は熟達した、adult は大人。", category:"vocab", difficulty:2},
+  {id:112, sentence:"The presentation was so _____ that several investors agreed to fund the project.", choices:["convincing","convinced","convince","convinces"], answer:0, explanation:"形容詞として「説得力のある」を意味する現在分詞 convincing が正解。convinced は「確信した」で意味が異なる。", category:"grammar_vocab", difficulty:2},
+  {id:113, sentence:"All participants are required to submit their proposals _____ than March 15th.", choices:["no later","not later","no latest","not latest"], answer:0, explanation:"「no later than」で「～までに」という期限を表す定型表現。ビジネス文書で頻出。", category:"grammar", difficulty:2},
+  {id:114, sentence:"The sales team managed to _____ their target by fifteen percent this quarter.", choices:["exceed","excess","exceedingly","excessive"], answer:0, explanation:"動詞「exceed」（超える）が正解。excess は名詞/形容詞、exceedingly は副詞、excessive は形容詞。", category:"vocab", difficulty:2},
+  {id:115, sentence:"I would appreciate it if you could _____ me with the details of the new project.", choices:["provide","prove","provoke","propose"], answer:0, explanation:"「provide me with」で「～を提供する」。prove は証明する、provoke は挑発する、propose は提案する。", category:"vocab", difficulty:1},
+  {id:116, sentence:"The factory _____ down for maintenance every August to ensure equipment safety.", choices:["shuts","shots","shifts","sheds"], answer:0, explanation:"「shut down」で「閉鎖する・停止する」。shots は発射、shifts は交代する、sheds は小屋/流す。", category:"grammar_vocab", difficulty:1},
+  {id:117, sentence:"Had I known about the schedule change, I _____ my flight earlier.", choices:["would have booked","will book","would book","have booked"], answer:0, explanation:"仮定法過去完了の帰結節は「would have + 過去分詞」。過去の事実に反する仮定の結果を表す。", category:"grammar", difficulty:2},
+  {id:118, sentence:"The human resources department is in charge of _____ new employees.", choices:["recruiting","recruited","recruit","recruits"], answer:0, explanation:"前置詞 of の後には動名詞が来る。「in charge of recruiting」で「採用を担当する」。", category:"grammar", difficulty:1},
+  {id:119, sentence:"Our client expressed _____ about the delay in the delivery schedule.", choices:["concern","concerned","concerning","concerns"], answer:0, explanation:"動詞 expressed の目的語として不可算名詞「concern」（懸念）が適切。concerning は前置詞的用法。", category:"grammar_vocab", difficulty:2},
+  {id:120, sentence:"The new software will _____ us to process orders more efficiently.", choices:["enable","able","unable","capability"], answer:0, explanation:"「enable + 人 + to do」で「～できるようにする」。able は形容詞、unable は不可能、capability は名詞。", category:"vocab", difficulty:1},
+  {id:121, sentence:"Ms. Tanaka has been working in the accounting department _____ she graduated from university.", choices:["since","for","during","while"], answer:0, explanation:"起点を表す since（～以来）が正解。for は期間、during は特定期間中、while は～の間に。", category:"grammar", difficulty:1},
+  {id:122, sentence:"The board members were unable to reach a _____ on the proposed merger.", choices:["consensus","census","consent","conscience"], answer:0, explanation:"「reach a consensus」で「合意に達する」。census は国勢調査、consent は同意、conscience は良心。", category:"vocab", difficulty:2},
+  {id:123, sentence:"Please _____ that all windows are closed before leaving the office.", choices:["ensure","insure","assure","endure"], answer:0, explanation:"「ensure」は確実にすること。insure は保険をかける、assure は人を安心させる、endure は耐える。", category:"vocab", difficulty:2},
+  {id:124, sentence:"The supervisor asked the team to _____ the project report by Friday afternoon.", choices:["complete","completion","completely","completing"], answer:0, explanation:"to不定詞の後は動詞の原形。「complete」（完成させる）が正解。completion は名詞、completely は副詞。", category:"grammar", difficulty:1},
+  {id:125, sentence:"Negotiations between the two companies are expected to _____ several weeks.", choices:["last","lost","list","least"], answer:0, explanation:"「last + 期間」で「～続く」。lost は失った、list はリスト、least は最小の。", category:"vocab", difficulty:1},
+  {id:126, sentence:"The marketing campaign was _____ successful than we had originally anticipated.", choices:["more","most","much","many"], answer:0, explanation:"比較級の文で「than」があるので「more successful」が正解。most は最上級、much/many は比較の強調には使えるが文法的に不適。", category:"grammar", difficulty:1},
+  {id:127, sentence:"We look forward to _____ from you regarding the partnership opportunity.", choices:["hearing","hear","heard","hears"], answer:0, explanation:"「look forward to + 動名詞」が正しい形。to は前置詞なので後ろは -ing 形。ビジネスメール定型表現。", category:"grammar", difficulty:1},
+  {id:128, sentence:"The company decided to _____ its operations to Southeast Asia next year.", choices:["expand","expend","export","expose"], answer:0, explanation:"「expand operations」で「事業を拡大する」。expend は費やす、export は輸出する、expose はさらす。", category:"vocab", difficulty:2},
+  {id:129, sentence:"The report highlights several _____ that need to be addressed before the product launch.", choices:["issues","tissues","issuance","issuing"], answer:0, explanation:"「issues」（問題点）が正解。tissues はティッシュ/組織、issuance は発行、issuing は発行すること。", category:"vocab", difficulty:1},
+  {id:130, sentence:"By the time the investors arrive, we _____ all the presentation materials.", choices:["will have prepared","will prepare","have prepared","are preparing"], answer:0, explanation:"未来完了形「will have prepared」。未来のある時点までに完了する動作を表す。", category:"grammar", difficulty:2},
+  {id:131, sentence:"The director insisted _____ reviewing every contract before it is finalized.", choices:["on","in","at","for"], answer:0, explanation:"「insist on + 動名詞」で「～することを主張する」。insist の後には on が来る。", category:"grammar", difficulty:2},
+  {id:132, sentence:"We must take _____ action to resolve the supply chain disruption.", choices:["immediate","immediately","immediateness","immedicable"], answer:0, explanation:"名詞 action を修飾する形容詞「immediate」（即座の）が必要。immediately は副詞。", category:"grammar_vocab", difficulty:1},
+  {id:133, sentence:"The annual conference will be _____ at the Grand Hotel on November 10th.", choices:["held","hold","holding","holds"], answer:0, explanation:"受動態「will be held」が正しい。conference は開催される側なので過去分詞が必要。", category:"grammar", difficulty:1},
+  {id:134, sentence:"Our team has successfully _____ a solution to reduce production costs by twenty percent.", choices:["implemented","implicated","implied","imported"], answer:0, explanation:"「implement a solution」で「解決策を実施する」。implicated は関与させた、implied は暗示した、imported は輸入した。", category:"vocab", difficulty:2},
+  {id:135, sentence:"The client requested a detailed _____ of the project timeline and milestones.", choices:["breakdown","breakout","breakthrough","breakup"], answer:0, explanation:"「breakdown」は「内訳・分析」の意味。breakout は脱走、breakthrough は突破口、breakup は解散。", category:"vocab", difficulty:2},
+  {id:136, sentence:"If the weather _____ fine tomorrow, the outdoor event will proceed as scheduled.", choices:["is","will be","would be","were"], answer:0, explanation:"条件節（if節）では未来のことでも現在形を使う。「If the weather is fine」が正しい。", category:"grammar", difficulty:1},
+  {id:137, sentence:"She was promoted to senior manager _____ her outstanding performance over the past year.", choices:["due to","because","although","despite"], answer:0, explanation:"「due to + 名詞句」で「～のために」。because の後は節が必要。although は逆接、despite は～にもかかわらず。", category:"grammar_vocab", difficulty:2},
+  {id:138, sentence:"The accounting team discovered a major _____ in the financial statements.", choices:["discrepancy","discovery","discretion","discrimination"], answer:0, explanation:"「discrepancy」は「不一致・矛盾」。discovery は発見、discretion は裁量、discrimination は差別。", category:"vocab", difficulty:3},
+  {id:139, sentence:"All employees must _____ to the company's code of conduct at all times.", choices:["adhere","adhesive","adherent","adhering"], answer:0, explanation:"「adhere to」で「～を遵守する」。must の後は動詞の原形。adhesive は接着剤（名詞/形容詞）。", category:"grammar_vocab", difficulty:2},
+  {id:140, sentence:"The marketing team came up _____ an innovative approach to attract younger customers.", choices:["with","to","for","on"], answer:0, explanation:"「come up with」で「～を考え出す」という句動詞。with 以外の前置詞は不適切。", category:"grammar", difficulty:1},
+  {id:141, sentence:"The project was completed ahead of schedule, _____ saved the company a significant amount of money.", choices:["which","that","what","it"], answer:0, explanation:"非制限用法の関係代名詞 which が正解。コンマの後に that は使えない。what は先行詞不要、it では接続が不適。", category:"grammar", difficulty:2},
+  {id:142, sentence:"We need to _____ the risks carefully before making a final investment decision.", choices:["assess","access","asset","assist"], answer:0, explanation:"「assess risks」で「リスクを評価する」。access はアクセス、asset は資産、assist は支援する。", category:"vocab", difficulty:2},
+  {id:143, sentence:"The new regulation will come into _____ at the beginning of next fiscal year.", choices:["effect","affect","effort","efficient"], answer:0, explanation:"「come into effect」で「施行される」という定型表現。affect は動詞、effort は努力、efficient は効率的な。", category:"grammar_vocab", difficulty:2},
+  {id:144, sentence:"Mr. Kim has extensive _____ in international trade and cross-border negotiations.", choices:["experience","experiment","expertise","expectation"], answer:0, explanation:"「experience in」で「～における経験」。experiment は実験、expertise は専門知識、expectation は期待。", category:"vocab", difficulty:1},
+  {id:145, sentence:"The flight to London was delayed _____ heavy fog at the departure airport.", choices:["owing to","owing for","owing with","owing at"], answer:0, explanation:"「owing to」で「～のために」（原因を表す）。owing to は due to と同義のフォーマルな表現。", category:"grammar_vocab", difficulty:2},
+  {id:146, sentence:"Not only did the company increase its revenue, _____ it also reduced operational costs.", choices:["but","and","or","yet"], answer:0, explanation:"「Not only ... but (also)」の相関接続詞構文。「～だけでなく…も」の意味。", category:"grammar", difficulty:2},
+  {id:147, sentence:"The warehouse supervisor is _____ for maintaining accurate inventory records.", choices:["accountable","accounting","accounted","accountant"], answer:0, explanation:"「accountable for」で「～に対して責任がある」。accounting は会計、accountant は会計士。", category:"grammar_vocab", difficulty:2},
+  {id:148, sentence:"Could you please _____ the meeting to next Thursday due to a scheduling conflict?", choices:["reschedule","rescheduling","rescheduled","reschedules"], answer:0, explanation:"「Could you please + 動詞の原形」で丁寧な依頼を表す。reschedule（日程変更する）が正解。", category:"grammar", difficulty:1},
+  {id:149, sentence:"The research findings _____ that consumer preferences have shifted significantly.", choices:["indicate","indicative","indication","indicated"], answer:0, explanation:"主語 findings は複数形なので現在形の「indicate」が正解。文脈から現在の事実を述べている。", category:"grammar", difficulty:2},
+  {id:150, sentence:"We are currently _____ applications for the position of regional sales manager.", choices:["accepting","excepting","expecting","accessing"], answer:0, explanation:"「accepting applications」で「応募を受け付けている」。excepting は除いて、expecting は期待する、accessing はアクセスする。", category:"vocab", difficulty:2},
+  {id:151, sentence:"The budget proposal needs to be _____ by the finance committee before implementation.", choices:["approved","approval","approve","approving"], answer:0, explanation:"受動態「be approved」が正しい。proposal は承認される側なので過去分詞が必要。approval は名詞。", category:"grammar", difficulty:1},
+  {id:152, sentence:"Despite the economic downturn, the company managed to _____ its profit margin.", choices:["maintain","contain","obtain","sustain"], answer:0, explanation:"「maintain profit margin」で「利益率を維持する」。contain は含む、obtain は獲得する、sustain は持続させるが、margin との共起は maintain が最適。", category:"vocab", difficulty:2},
+  {id:153, sentence:"The training session is _____ at improving employees' communication skills.", choices:["aimed","aiming","aim","aims"], answer:0, explanation:"「be aimed at + 動名詞」で「～を目的としている」。受動態の定型表現。", category:"grammar_vocab", difficulty:2},
+  {id:154, sentence:"A thorough investigation _____ conducted to determine the cause of the product defect.", choices:["was","were","has","have"], answer:0, explanation:"主語 investigation は単数なので「was conducted」が正解。were は複数用、has/have は時制が合わない。", category:"grammar", difficulty:1},
+  {id:155, sentence:"The consultant recommended that the company _____ its organizational structure.", choices:["restructure","restructures","restructured","restructuring"], answer:0, explanation:"recommend that の後は仮定法現在（動詞の原形）を使う。提案・要求を表す動詞の that 節。", category:"grammar", difficulty:3},
+  {id:156, sentence:"Our company prides itself _____ providing excellent customer service.", choices:["on","in","for","with"], answer:0, explanation:"「pride oneself on」で「～を誇りに思う」。on 以外の前置詞は不適切。", category:"grammar", difficulty:2},
+  {id:157, sentence:"The _____ between the two departments has improved significantly since the reorganization.", choices:["collaboration","collection","calculation","celebration"], answer:0, explanation:"「collaboration」は「協力・連携」。collection は収集、calculation は計算、celebration は祝賀。", category:"vocab", difficulty:1},
+  {id:158, sentence:"Employees who wish to attend the seminar should register _____ advance.", choices:["in","on","at","by"], answer:0, explanation:"「in advance」で「事前に」という定型表現。前もってという意味でビジネスで頻出。", category:"grammar", difficulty:1},
+  {id:159, sentence:"The company is seeking a candidate with strong _____ skills and leadership abilities.", choices:["analytical","analysis","analyze","analyzing"], answer:0, explanation:"名詞 skills を修飾する形容詞「analytical」（分析的な）が必要。analysis は名詞、analyze は動詞。", category:"grammar_vocab", difficulty:1},
+  {id:160, sentence:"It is _____ that all safety equipment be inspected before each shift begins.", choices:["mandatory","mandated","mandate","mandating"], answer:0, explanation:"「It is mandatory that」で「～は義務である」。mandatory は形容詞で「必須の」の意味。", category:"vocab", difficulty:2},
+  {id:161, sentence:"The merger between the two firms is _____ to be finalized by the end of this quarter.", choices:["expected","expecting","expectation","expectancy"], answer:0, explanation:"「be expected to」で「～すると予想される」。受動態の不定詞構文。expectation は名詞。", category:"grammar", difficulty:1},
+  {id:162, sentence:"We should _____ into account all possible risks before launching the new product.", choices:["take","make","put","give"], answer:0, explanation:"「take into account」で「～を考慮に入れる」という定型表現。他の動詞との組み合わせは不適切。", category:"grammar_vocab", difficulty:1},
+  {id:163, sentence:"The keynote speaker delivered a very _____ presentation on sustainable business practices.", choices:["compelling","compelled","compel","compulsion"], answer:0, explanation:"名詞 presentation を修飾する形容詞「compelling」（説得力のある）が正解。compelled は受身的意味。", category:"grammar_vocab", difficulty:2},
+  {id:164, sentence:"Applicants must have at least five years of _____ experience in project management.", choices:["relevant","relative","reluctant","reliant"], answer:0, explanation:"「relevant experience」で「関連する経験」。relative は相対的な、reluctant は気が進まない、reliant は依存している。", category:"vocab", difficulty:2},
+  {id:165, sentence:"The IT department will _____ the system upgrade during the weekend to minimize disruption.", choices:["carry out","carry on","carry away","carry off"], answer:0, explanation:"「carry out」で「実行する」。carry on は続ける、carry away は運び去る、carry off はやり遂げる。", category:"grammar_vocab", difficulty:2},
+  {id:166, sentence:"Neither the manager _____ the team members were informed about the policy change.", choices:["nor","or","and","but"], answer:0, explanation:"「Neither A nor B」で「AもBも～ない」の相関接続詞。neither には nor が対応する。", category:"grammar", difficulty:1},
+  {id:167, sentence:"The government has introduced new _____ to protect consumers from fraudulent products.", choices:["legislation","legislative","legislator","legislature"], answer:0, explanation:"「legislation」は「法律・法規」。legislative は立法の（形容詞）、legislator は立法者、legislature は立法機関。", category:"vocab", difficulty:3},
+  {id:168, sentence:"The company's profits have _____ steadily over the past three consecutive years.", choices:["increased","increasing","increase","increasingly"], answer:0, explanation:"現在完了形「have increased」が正解。have の後には過去分詞が必要。increasingly は副詞。", category:"grammar", difficulty:1},
+  {id:169, sentence:"We regret to _____ you that your application has not been successful.", choices:["inform","information","informative","informing"], answer:0, explanation:"「regret to inform」で「残念ながらお知らせする」。to 不定詞の後は動詞の原形。ビジネスレター定型表現。", category:"grammar_vocab", difficulty:1},
+  {id:170, sentence:"The seminar provided valuable _____ into current trends in digital marketing.", choices:["insights","incites","insides","insects"], answer:0, explanation:"「insights into」で「～への洞察」。incites は扇動する、insides は内部、insects は昆虫。", category:"vocab", difficulty:2},
+  {id:171, sentence:"Unless the supplier _____ the parts by Friday, we will have to find an alternative vendor.", choices:["delivers","will deliver","delivered","delivering"], answer:0, explanation:"unless 節（条件節）では未来のことでも現在形を使う。will deliver は不可。", category:"grammar", difficulty:2},
+  {id:172, sentence:"The department head _____ a brief summary of the project's progress at every weekly meeting.", choices:["presents","presence","present","presentation"], answer:0, explanation:"三人称単数現在形「presents」（発表する）が正解。presence は存在、presentation は発表（名詞）。", category:"grammar_vocab", difficulty:1},
+  {id:173, sentence:"Our team is working around the clock to meet the _____ deadline for the government contract.", choices:["tight","tighten","tightly","tightness"], answer:0, explanation:"名詞 deadline を修飾する形容詞「tight」（厳しい）が必要。tighten は動詞、tightly は副詞。", category:"grammar_vocab", difficulty:1},
+  {id:174, sentence:"The chairman proposed that the annual general meeting _____ postponed until further notice.", choices:["be","is","was","being"], answer:0, explanation:"propose that の後は仮定法現在（動詞の原形）。受動態では「be + 過去分詞」で be が原形のまま。", category:"grammar", difficulty:3},
+  {id:175, sentence:"Customer feedback is _____ to improving the quality of our products and services.", choices:["essential","essentially","essence","essentials"], answer:0, explanation:"「be essential to」で「～に不可欠である」。essentially は副詞、essence は本質（名詞）。", category:"grammar_vocab", difficulty:1},
+  {id:176, sentence:"The marketing team launched a campaign to _____ brand awareness among young consumers.", choices:["raise","rise","arise","rose"], answer:0, explanation:"「raise」は他動詞で「高める」。rise は自動詞（上がる）、arise は生じる、rose は rise の過去形。", category:"vocab", difficulty:2},
+  {id:177, sentence:"All correspondence should be _____ to the attention of the human resources manager.", choices:["directed","directing","direct","direction"], answer:0, explanation:"受動態「be directed to」で「～宛てにする」。directing は能動態、direction は名詞。", category:"grammar", difficulty:2},
+  {id:178, sentence:"The company has _____ a new policy regarding remote work arrangements for all departments.", choices:["introduced","introducing","introduction","introductory"], answer:0, explanation:"現在完了形「has introduced」が正解。has の後には過去分詞が必要。introduction は名詞。", category:"grammar", difficulty:1},
+  {id:179, sentence:"It is _____ important that we finalize the budget before the fiscal year begins.", choices:["crucially","crucial","crucialness","cruciality"], answer:0, explanation:"形容詞 important を修飾する副詞「crucially」が正解。crucial を使うなら It is crucial that となる。", category:"grammar_vocab", difficulty:3},
+  {id:180, sentence:"The warehouse has _____ storage capacity to accommodate the increased inventory.", choices:["sufficient","sufficiently","suffice","sufficiency"], answer:0, explanation:"名詞 capacity を修飾する形容詞「sufficient」（十分な）が必要。sufficiently は副詞、suffice は動詞。", category:"grammar_vocab", difficulty:2},
+  {id:181, sentence:"Mr. Yamamoto will be _____ charge of the Tokyo office while the director is overseas.", choices:["in","on","at","under"], answer:0, explanation:"「be in charge of」で「～を担当する」という定型表現。ビジネス英語で頻出の前置詞句。", category:"grammar", difficulty:1},
+  {id:182, sentence:"The auditors found that several transactions had not been properly _____.", choices:["documented","documentary","documentation","documenting"], answer:0, explanation:"受動態「been documented」が正解。過去分詞が必要。documentary は形容詞/名詞、documentation は名詞。", category:"grammar", difficulty:1},
+  {id:183, sentence:"We anticipate a _____ increase in demand for our products during the holiday season.", choices:["substantial","substance","substantially","substantive"], answer:0, explanation:"名詞 increase を修飾する形容詞「substantial」（かなりの）が必要。substance は物質、substantially は副詞。", category:"grammar_vocab", difficulty:2},
+  {id:184, sentence:"The candidate demonstrated a thorough understanding of the _____ market conditions.", choices:["current","currency","currently","occurrence"], answer:0, explanation:"名詞 market conditions を修飾する形容詞「current」（現在の）が必要。currency は通貨、currently は副詞。", category:"grammar_vocab", difficulty:1},
+  {id:185, sentence:"Employees are encouraged to _____ their concerns directly with their supervisors.", choices:["raise","rise","arose","risen"], answer:0, explanation:"「raise concerns」で「懸念を提起する」。raise は他動詞。rise は自動詞で目的語を取れない。", category:"vocab", difficulty:2},
+  {id:186, sentence:"The board of directors will _____ whether to approve the proposed acquisition next Monday.", choices:["determine","determination","determined","determining"], answer:0, explanation:"助動詞 will の後は動詞の原形「determine」（決定する）。determination は名詞。", category:"grammar", difficulty:1},
+  {id:187, sentence:"The success of the project depends largely _____ effective communication between team members.", choices:["on","in","for","to"], answer:0, explanation:"「depend on」で「～に依存する」。depend の後には on が来る。他の前置詞は不適切。", category:"grammar", difficulty:1},
+  {id:188, sentence:"The new software system is designed to _____ workflow and reduce manual data entry.", choices:["streamline","streamlined","streaming","mainstream"], answer:0, explanation:"to不定詞の後は動詞の原形「streamline」（効率化する）。streamlined は過去分詞/形容詞、mainstream は主流。", category:"vocab", difficulty:2},
+  {id:189, sentence:"The manager commended the team for their _____ efforts during the product launch.", choices:["outstanding","outstand","outstandingly","outstood"], answer:0, explanation:"名詞 efforts を修飾する形容詞「outstanding」（卓越した）が必要。outstandingly は副詞。", category:"grammar_vocab", difficulty:1},
+  {id:190, sentence:"We would like to _____ our sincere gratitude for your generous contribution to the charity.", choices:["express","impress","compress","suppress"], answer:0, explanation:"「express gratitude」で「感謝を表す」。impress は感銘を与える、compress は圧縮する、suppress は抑制する。", category:"vocab", difficulty:2},
+  {id:191, sentence:"The contract stipulates that either party may terminate the agreement _____ thirty days' written notice.", choices:["with","by","on","in"], answer:0, explanation:"「with thirty days' notice」で「30日前の通知をもって」。ビジネス契約書の定型表現。", category:"grammar_vocab", difficulty:3},
+  {id:192, sentence:"_____ having limited resources, the startup managed to develop an innovative product.", choices:["Despite","Although","Because","Since"], answer:0, explanation:"「Despite + 動名詞」で「～にもかかわらず」。Although の後は節が必要。Because/Since は理由を表す。", category:"grammar", difficulty:2},
+  {id:193, sentence:"The quarterly earnings report will be _____ to shareholders at the annual meeting.", choices:["distributed","distributing","distribute","distribution"], answer:0, explanation:"受動態「will be distributed」が正解。report は配布される側なので過去分詞が必要。distribution は名詞。", category:"grammar", difficulty:1},
+  {id:194, sentence:"The company needs to _____ with industry standards to maintain its certification.", choices:["comply","compliment","complement","complete"], answer:0, explanation:"「comply with」で「～に準拠する」。compliment は褒める、complement は補完する、complete は完了する。", category:"vocab", difficulty:2},
+  {id:195, sentence:"The survey results _____ that most customers are satisfied with our after-sales service.", choices:["reveal","revelation","revealing","revealed"], answer:0, explanation:"主語 results は複数形で、現在の事実を述べているため現在形「reveal」が正解。", category:"grammar", difficulty:2},
+  {id:196, sentence:"Each department is allocated a specific _____ for operational expenses every fiscal year.", choices:["budget","budgeting","budgeted","budgetary"], answer:0, explanation:"形容詞 specific の後に名詞「budget」（予算）が必要。budgetary は形容詞、budgeting は動名詞。", category:"vocab", difficulty:1},
+  {id:197, sentence:"The executive team is considering _____ a new branch office in the downtown business district.", choices:["opening","open","opened","to open"], answer:0, explanation:"「consider + 動名詞」が正しい。consider の後には -ing 形が来る。to不定詞は不可。", category:"grammar", difficulty:2},
+  {id:198, sentence:"It is imperative that the safety _____ be followed at all times in the manufacturing facility.", choices:["procedures","procedure","procedural","proceed"], answer:0, explanation:"「safety procedures」（安全手順）が正解。imperative that の後は仮定法現在で動詞は原形 be。", category:"vocab", difficulty:2},
+  {id:199, sentence:"The shipping department needs to _____ the packaging process to reduce delivery times.", choices:["expedite","expedition","expeditious","expediting"], answer:0, explanation:"to不定詞の後は動詞の原形「expedite」（迅速化する）。expedition は遠征、expeditious は迅速な（形容詞）。", category:"vocab", difficulty:3},
+  {id:200, sentence:"The proposed changes are subject _____ approval by the regulatory authorities.", choices:["to","for","of","by"], answer:0, explanation:"「subject to」で「～の対象である・～次第である」という定型表現。ビジネス・法務文書で頻出。", category:"grammar_vocab", difficulty:2},
+  {id:201, sentence:"The committee will _____ the proposal at the next board meeting.", choices:["review","preview","interview","overview"], answer:0, explanation:"reviewは「審査する・見直す」。previewは「予告」、interviewは「面接」、overviewは「概要」で文脈に合わない。", category:"vocab", difficulty:1},
+  {id:202, sentence:"All employees are required to _____ with the new safety regulations.", choices:["comply","apply","reply","supply"], answer:0, explanation:"comply with～は「～に従う」。applyは「応募する・適用する」、replyは「返答する」、supplyは「供給する」。", category:"vocab", difficulty:2},
+  {id:203, sentence:"The research team _____ a significant correlation between the two variables.", choices:["identified","modified","justified","simplified"], answer:0, explanation:"identifiedは「特定した・発見した」。modifiedは「修正した」、justifiedは「正当化した」、simplifiedは「簡略化した」。", category:"vocab", difficulty:2},
+  {id:204, sentence:"Had the shipment arrived on time, we _____ the deadline.", choices:["would have met","would meet","will meet","had met"], answer:0, explanation:"仮定法過去完了の帰結節はwould have + 過去分詞。過去の事実に反する仮定を表す。", category:"grammar", difficulty:3},
+  {id:205, sentence:"The marketing department is responsible _____ developing the new campaign.", choices:["for","of","to","with"], answer:0, explanation:"responsible forは「～に責任がある」という定型表現。responsible of/to/withは不自然。", category:"grammar", difficulty:1},
+  {id:206, sentence:"Please find _____ the revised contract for your review.", choices:["attached","attaching","attachment","attach"], answer:0, explanation:"find attached ～は「添付の～をご確認ください」というビジネスメール定型表現。過去分詞が補語。", category:"grammar_vocab", difficulty:2},
+  {id:207, sentence:"The CEO emphasized the _____ of maintaining high ethical standards.", choices:["importance","important","importantly","import"], answer:0, explanation:"the _____ of ～の構造には名詞が必要。importanceは名詞「重要性」。importantは形容詞、importantlyは副詞。", category:"grammar", difficulty:1},
+  {id:208, sentence:"Our quarterly earnings have _____ expectations for the third consecutive quarter.", choices:["exceeded","proceeded","preceded","receded"], answer:0, explanation:"exceededは「超えた」。proceededは「進んだ」、precededは「先行した」、recededは「後退した」。", category:"vocab", difficulty:2},
+  {id:209, sentence:"The consultant recommended that the company _____ its organizational structure.", choices:["restructure","restructures","restructured","restructuring"], answer:0, explanation:"recommend that S + 動詞原形（仮定法現在）。提案・要求を表す動詞に続くthat節では原形を使う。", category:"grammar", difficulty:3},
+  {id:210, sentence:"We need to _____ a feasibility study before launching the new product.", choices:["conduct","instruct","construct","obstruct"], answer:0, explanation:"conduct a studyは「調査を実施する」。instructは「指導する」、constructは「建設する」、obstructは「妨害する」。", category:"vocab", difficulty:2},
+  {id:211, sentence:"The new policy will take _____ at the beginning of next fiscal year.", choices:["effect","affect","effort","offer"], answer:0, explanation:"take effectは「施行される・発効する」。affectは動詞「影響する」、effortは「努力」、offerは「提供」。", category:"grammar_vocab", difficulty:2},
+  {id:212, sentence:"_____ the heavy rain, the outdoor event proceeded as scheduled.", choices:["Despite","Although","Because","However"], answer:0, explanation:"Despiteは前置詞で名詞句を取る。Althoughは接続詞で節が必要。Becauseは理由を示し意味が逆。Howeverは副詞で文頭には不適切。", category:"grammar", difficulty:2},
+  {id:213, sentence:"The intern showed great _____ in handling the difficult client situation.", choices:["competence","competent","competently","competition"], answer:0, explanation:"showedの後には名詞が必要。competenceは「能力」（名詞）。competentは形容詞、competentlyは副詞、competitionは「競争」。", category:"grammar_vocab", difficulty:2},
+  {id:214, sentence:"All participants must _____ to the terms and conditions before registration.", choices:["agree","agreeable","agreement","agreeably"], answer:0, explanation:"mustの後には動詞原形が必要。agree to～は「～に同意する」。agreeableは形容詞、agreementは名詞。", category:"grammar", difficulty:1},
+  {id:215, sentence:"The board members reached a _____ decision after lengthy deliberation.", choices:["unanimous","anonymous","ambiguous","analogous"], answer:0, explanation:"unanimousは「全会一致の」。anonymousは「匿名の」、ambiguousは「曖昧な」、analogousは「類似の」。", category:"vocab", difficulty:3},
+  {id:216, sentence:"She has been _____ promoted to senior vice president of operations.", choices:["recently","presently","frequently","previously"], answer:0, explanation:"recentlyは「最近」で現在完了形と相性が良い。presentlyは「現在」、frequentlyは「頻繁に」、previouslyは「以前」で文脈に合わない。", category:"vocab", difficulty:1},
+  {id:217, sentence:"The project manager asked us to _____ the timeline by two weeks.", choices:["extend","expand","expose","extract"], answer:0, explanation:"extend the timelineは「スケジュールを延長する」。expandは「拡大する」、exposeは「露出させる」、extractは「抽出する」。", category:"vocab", difficulty:1},
+  {id:218, sentence:"Not only did the company increase profits, _____ it also reduced operating costs.", choices:["but","and","so","yet"], answer:0, explanation:"Not only ～ but (also) ～は「～だけでなく～も」の相関接続詞構文。", category:"grammar", difficulty:2},
+  {id:219, sentence:"The _____ between the two departments has improved significantly this year.", choices:["collaboration","elaborate","laboratory","celebration"], answer:0, explanation:"collaborationは「協力・連携」。elaborateは「精巧な」（形容詞）、laboratoryは「研究室」、celebrationは「祝賀」。", category:"vocab", difficulty:2},
+  {id:220, sentence:"We should _____ advantage of the current market conditions to expand overseas.", choices:["take","make","get","have"], answer:0, explanation:"take advantage of～は「～を利用する」という定型表現。make/get/haveとは組み合わせない。", category:"grammar_vocab", difficulty:1},
+  {id:221, sentence:"The auditor found several _____ in the financial statements.", choices:["discrepancies","frequencies","currencies","redundancies"], answer:0, explanation:"discrepanciesは「不一致・矛盾」。frequenciesは「頻度」、currenciesは「通貨」、redundanciesは「冗長性・人員削減」。", category:"vocab", difficulty:3},
+  {id:222, sentence:"_____ having limited resources, the team delivered the project on time.", choices:["Despite","Although","Because of","In order"], answer:0, explanation:"Despiteは前置詞で動名詞句を取れる。Althoughは接続詞で節が必要。Because ofは理由で意味が逆。In orderは不完全。", category:"grammar", difficulty:2},
+  {id:223, sentence:"The new software is designed to _____ workflow efficiency across all departments.", choices:["enhance","entrance","endure","enclose"], answer:0, explanation:"enhanceは「向上させる」。entranceは「入口」、endureは「耐える」、encloseは「囲む・同封する」。", category:"vocab", difficulty:2},
+  {id:224, sentence:"I would appreciate it if you _____ reply at your earliest convenience.", choices:["could","can","will","shall"], answer:0, explanation:"I would appreciate it if you could ～は丁寧な依頼表現。仮定法のcouldを使うことで丁寧さが増す。", category:"grammar", difficulty:2},
+  {id:225, sentence:"The company's _____ to sustainable practices has earned it several awards.", choices:["commitment","committee","commission","commodity"], answer:0, explanation:"commitmentは「取り組み・献身」。committeeは「委員会」、commissionは「手数料・委託」、commodityは「商品・日用品」。", category:"vocab", difficulty:2},
+  {id:226, sentence:"Applicants _____ resumes were received after the deadline will not be considered.", choices:["whose","which","that","whom"], answer:0, explanation:"whoseは所有格の関係代名詞。「履歴書が締切後に届いた応募者」の意味でresumesを修飾。", category:"grammar", difficulty:2},
+  {id:227, sentence:"The manager _____ the team for their outstanding performance on the project.", choices:["commended","commanded","commenced","commented"], answer:0, explanation:"commendedは「称賛した」。commandedは「命令した」、commencedは「開始した」、commentedは「コメントした」。", category:"vocab", difficulty:3},
+  {id:228, sentence:"The data must be analyzed _____ before any conclusions can be drawn.", choices:["thoroughly","thorough","thoroughness","though"], answer:0, explanation:"動詞analyzedを修飾するには副詞が必要。thoroughlyは「徹底的に」（副詞）。thoroughは形容詞、thoroughnessは名詞。", category:"grammar", difficulty:1},
+  {id:229, sentence:"We are writing to _____ you that your subscription will expire next month.", choices:["inform","conform","reform","perform"], answer:0, explanation:"informは「通知する」。conformは「従う」、reformは「改革する」、performは「実行する」。inform you that～はビジネス文書の定型。", category:"vocab", difficulty:1},
+  {id:230, sentence:"The new regulation _____ companies from disposing of waste in the river.", choices:["prohibits","inhibits","exhibits","attributes"], answer:0, explanation:"prohibit A from ～ingは「Aが～するのを禁止する」。inhibitは「抑制する」、exhibitは「展示する」、attributeは「帰する」。", category:"grammar_vocab", difficulty:2},
+  {id:231, sentence:"By the time the report is published, we _____ all the necessary data.", choices:["will have gathered","will gather","gathered","are gathering"], answer:0, explanation:"by the time + 現在形の文では、未来完了形（will have + 過去分詞）を使い、完了を表す。", category:"grammar", difficulty:3},
+  {id:232, sentence:"The conference room is _____ for a meeting from 2:00 to 4:00 PM.", choices:["reserved","preserved","conserved","observed"], answer:0, explanation:"reservedは「予約されている」。preservedは「保存された」、conservedは「保全された」、observedは「観察された」。", category:"vocab", difficulty:1},
+  {id:233, sentence:"The _____ of the merger surprised many industry analysts.", choices:["announcement","pronouncement","denouncement","renouncement"], answer:0, explanation:"announcementは「発表」で合併の文脈に最適。pronouncementは「宣言」、denouncementは「告発」、renouncementは「放棄」。", category:"vocab", difficulty:2},
+  {id:234, sentence:"_____ the instructions carefully before operating the new equipment.", choices:["Read","Reading","To read","Having read"], answer:0, explanation:"命令文なので動詞原形で始める。Readが正しい。他は命令文の形として不適切。", category:"grammar", difficulty:1},
+  {id:235, sentence:"The presentation was so _____ that several investors decided to fund the project.", choices:["compelling","compelled","compel","compulsion"], answer:0, explanation:"so + 形容詞 + that構文。compellingは「説得力のある」（形容詞）。compelledは過去分詞で意味が異なる。", category:"grammar_vocab", difficulty:2},
+  {id:236, sentence:"The HR department will _____ new employees on company policies during orientation.", choices:["brief","debrief","abbreviate","summarize"], answer:0, explanation:"briefは「簡潔に説明する」。debriefは「事後報告を受ける」、abbreviateは「省略する」、summarizeは「要約する」。", category:"vocab", difficulty:2},
+  {id:237, sentence:"Neither the manager _____ the supervisors were aware of the scheduling conflict.", choices:["nor","or","and","but"], answer:0, explanation:"neither A nor Bは「AもBも～ない」の相関接続詞。neitherとnorはセットで使う。", category:"grammar", difficulty:1},
+  {id:238, sentence:"The company decided to _____ its operations into three separate divisions.", choices:["consolidate","eliminate","deteriorate","exaggerate"], answer:0, explanation:"consolidateは「統合する」。eliminateは「排除する」、deteriorateは「悪化する」、exaggerateは「誇張する」。", category:"vocab", difficulty:3},
+  {id:239, sentence:"It is _____ that all safety protocols be followed during the inspection.", choices:["imperative","comparative","figurative","tentative"], answer:0, explanation:"imperativeは「不可欠な・必須の」。comparativeは「比較の」、figurativeは「比喩的な」、tentativeは「暫定的な」。", category:"vocab", difficulty:3},
+  {id:240, sentence:"The survey results _____ that customer satisfaction has improved markedly.", choices:["indicate","indicative","indication","indicated"], answer:0, explanation:"主語The survey resultsに対する現在形の動詞が必要。indicateは動詞「示す」。indicativeは形容詞、indicationは名詞。", category:"grammar", difficulty:1},
+  {id:241, sentence:"The factory must _____ to strict environmental standards set by the government.", choices:["adhere","adhesive","adherence","adhering"], answer:0, explanation:"mustの後は動詞原形。adhere to～は「～を遵守する」。adhesiveは名詞/形容詞「接着剤」、adherenceは名詞。", category:"grammar_vocab", difficulty:2},
+  {id:242, sentence:"The architect presented a _____ design for the new corporate headquarters.", choices:["preliminary","complimentary","supplementary","documentary"], answer:0, explanation:"preliminaryは「予備的な・暫定的な」。complimentaryは「無料の・褒める」、supplementaryは「補足の」、documentaryは「記録の」。", category:"vocab", difficulty:2},
+  {id:243, sentence:"_____ you have any questions, please do not hesitate to contact us.", choices:["Should","Would","Could","Might"], answer:0, explanation:"Should you ～ = If you should ～（万一～なら）の倒置形。ビジネス文書でよく使われる丁寧な条件表現。", category:"grammar", difficulty:3},
+  {id:244, sentence:"The logistics team ensured that all packages were delivered _____.", choices:["intact","interact","extract","contract"], answer:0, explanation:"intactは「無傷で・損なわれずに」。interactは「交流する」、extractは「抽出する」、contractは「契約」。", category:"vocab", difficulty:2},
+  {id:245, sentence:"The annual report provides a comprehensive _____ of the company's financial health.", choices:["overview","overlook","overhaul","overture"], answer:0, explanation:"overviewは「概要」。overlookは「見落とす」、overhaulは「全面改修」、overtureは「序曲・提案」。", category:"vocab", difficulty:1},
+  {id:246, sentence:"Employees who wish to work remotely must submit a formal _____ to their supervisor.", choices:["request","conquest","bequest","inquest"], answer:0, explanation:"requestは「依頼・申請」。conquestは「征服」、bequestは「遺贈」、inquestは「審問」。", category:"vocab", difficulty:1},
+  {id:247, sentence:"The new policy, _____ was approved last week, will be implemented in March.", choices:["which","that","what","who"], answer:0, explanation:"非制限用法（コンマ付き関係詞節）ではwhichを使う。thatは非制限用法では使えない。", category:"grammar", difficulty:2},
+  {id:248, sentence:"The sales figures for this quarter are _____ higher than those of last year.", choices:["considerably","considerable","consideration","considerate"], answer:0, explanation:"形容詞higherを修飾するには副詞が必要。considerablyは「かなり」（副詞）。considerableは形容詞、considerateは「思いやりのある」。", category:"grammar", difficulty:2},
+  {id:249, sentence:"The company plans to _____ a new branch office in Singapore next year.", choices:["establish","demolish","relinquish","extinguish"], answer:0, explanation:"establishは「設立する」。demolishは「取り壊す」、relinquishは「放棄する」、extinguishは「消火する」。", category:"vocab", difficulty:1},
+  {id:250, sentence:"The negotiations broke _____ after both parties failed to reach a compromise.", choices:["down","up","in","out"], answer:0, explanation:"break downは「決裂する・故障する」。break upは「解散する」、break inは「押し入る」、break outは「勃発する」。", category:"grammar_vocab", difficulty:2},
+  {id:251, sentence:"Ms. Tanaka is _____ for coordinating all international shipping arrangements.", choices:["accountable","countable","discountable","mountable"], answer:0, explanation:"accountable forは「～に対して責任がある」。countableは「数えられる」、他は一般的でない語。", category:"vocab", difficulty:2},
+  {id:252, sentence:"The client insisted _____ receiving a detailed breakdown of all charges.", choices:["on","in","at","for"], answer:0, explanation:"insist on ～ingは「～を主張する・要求する」。insistはonと結びつく。", category:"grammar", difficulty:2},
+  {id:253, sentence:"The professor's _____ analysis of the data revealed previously unknown patterns.", choices:["meticulous","miraculous","ridiculous","conspicuous"], answer:0, explanation:"meticulousは「綿密な・細心の」。miraculousは「奇跡的な」、ridiculousは「ばかげた」、conspicuousは「目立つ」。", category:"vocab", difficulty:3},
+  {id:254, sentence:"The budget allocation _____ been finalized by the time the fiscal year begins.", choices:["will have","will be","has","had"], answer:0, explanation:"by the time + 現在形では未来完了形を使う。will have been finalizedで「確定されているだろう」。", category:"grammar", difficulty:3},
+  {id:255, sentence:"We need to find a _____ solution that satisfies all stakeholders.", choices:["viable","visible","volatile","versatile"], answer:0, explanation:"viableは「実行可能な」。visibleは「目に見える」、volatileは「不安定な」、versatileは「多才な」。", category:"vocab", difficulty:2},
+  {id:256, sentence:"The manager suggested _____ the meeting to a later date due to scheduling conflicts.", choices:["postponing","to postpone","postpone","postponed"], answer:0, explanation:"suggestは動名詞を目的語に取る。suggest ～ingが正しい形。to不定詞は取れない。", category:"grammar", difficulty:2},
+  {id:257, sentence:"The company experienced a sharp _____ in revenue during the fourth quarter.", choices:["decline","incline","recline","outline"], answer:0, explanation:"declineは「減少・低下」。inclineは「傾斜」、reclineは「もたれる」、outlineは「概要」。", category:"vocab", difficulty:1},
+  {id:258, sentence:"All staff members are _____ encouraged to attend the annual training seminar.", choices:["strongly","strong","strength","strengthen"], answer:0, explanation:"動詞encouragedを修飾するには副詞が必要。stronglyは「強く」（副詞）。strongは形容詞、strengthは名詞。", category:"grammar", difficulty:1},
+  {id:259, sentence:"The patent application was rejected on the _____ that it lacked originality.", choices:["grounds","fields","floors","bases"], answer:0, explanation:"on the grounds thatは「～という理由で」という定型表現。fieldsやfloorsはこの構文では使わない。", category:"grammar_vocab", difficulty:3},
+  {id:260, sentence:"We must _____ the potential risks before proceeding with the investment.", choices:["assess","access","assist","asset"], answer:0, explanation:"assessは「評価する」。accessは「アクセスする」、assistは「支援する」、assetは「資産」（名詞）。", category:"vocab", difficulty:1},
+  {id:261, sentence:"The intern demonstrated a remarkable _____ to learn new skills quickly.", choices:["aptitude","attitude","altitude","amplitude"], answer:0, explanation:"aptitudeは「適性・素質」。attitudeは「態度」、altitudeは「高度」、amplitudeは「振幅」。", category:"vocab", difficulty:3},
+  {id:262, sentence:"_____ completing the training program, employees will receive a certificate.", choices:["Upon","During","While","Since"], answer:0, explanation:"Upon ～ingは「～するとすぐに」。Duringは名詞を取る、Whileは節を取る、Sinceは文脈に合わない。", category:"grammar", difficulty:2},
+  {id:263, sentence:"The report highlighted several areas _____ improvement is urgently needed.", choices:["where","which","what","whom"], answer:0, explanation:"areasを先行詞とする関係副詞whereを使う。「改善が緊急に必要な分野」。whichならin whichが必要。", category:"grammar", difficulty:2},
+  {id:264, sentence:"The supplier has agreed to _____ the defective products at no additional cost.", choices:["replace","displace","misplace","outplace"], answer:0, explanation:"replaceは「交換する」。displaceは「移動させる」、misplaceは「置き忘れる」、outplaceは「再就職支援する」。", category:"vocab", difficulty:1},
+  {id:265, sentence:"The CEO's resignation had a _____ impact on the company's stock price.", choices:["profound","profane","profuse","prolific"], answer:0, explanation:"profoundは「深い・重大な」。profaneは「冒涜的な」、profuseは「大量の」、prolificは「多作の」。", category:"vocab", difficulty:3},
+  {id:266, sentence:"If I _____ in your position, I would negotiate for better terms.", choices:["were","was","am","be"], answer:0, explanation:"仮定法過去では主語に関係なくwereを使う（特にフォーマルな文脈）。現在の事実に反する仮定。", category:"grammar", difficulty:2},
+  {id:267, sentence:"The department head _____ responsibility for the oversight in the report.", choices:["acknowledged","knowledged","relinquished","diminished"], answer:0, explanation:"acknowledge responsibilityは「責任を認める」。relinquishは「放棄する」、diminishは「減少させる」。", category:"vocab", difficulty:2},
+  {id:268, sentence:"The proposal was rejected _____ its failure to address key environmental concerns.", choices:["owing to","in spite of","regardless of","apart from"], answer:0, explanation:"owing toは「～のために」（原因）。in spite ofは「～にもかかわらず」、regardless ofは「～に関係なく」で意味が逆。", category:"grammar_vocab", difficulty:2},
+  {id:269, sentence:"Please ensure that all expense reports are submitted _____ than Friday.", choices:["no later","not later","no latter","not latter"], answer:0, explanation:"no later thanは「～までに」という期限を示す定型表現。latterは「後者の」で全く意味が異なる。", category:"grammar_vocab", difficulty:2},
+  {id:270, sentence:"The company's _____ strategy focuses on expanding into emerging markets.", choices:["long-term","long-termed","longer-term","longest-term"], answer:0, explanation:"long-termは「長期的な」という複合形容詞。long-termedは不自然な形。", category:"vocab", difficulty:1},
+  {id:271, sentence:"The warranty _____ cover damages caused by misuse of the product.", choices:["does not","is not","has not","was not"], answer:0, explanation:"一般動詞coverの否定にはdoes notを使う。is notは進行形や受身に、has notは完了形に使う。", category:"grammar", difficulty:1},
+  {id:272, sentence:"The management team is currently _____ ways to reduce operational expenses.", choices:["exploring","exploding","exploiting","exporting"], answer:0, explanation:"exploringは「模索している」。explodingは「爆発する」、exploitingは「搾取する」、exportingは「輸出する」。", category:"vocab", difficulty:1},
+  {id:273, sentence:"The merger is _____ to regulatory approval from the relevant authorities.", choices:["subject","object","project","reject"], answer:0, explanation:"subject toは「～を条件として」。object toは「反対する」、projectは「計画」、rejectは「拒否する」。", category:"grammar_vocab", difficulty:2},
+  {id:274, sentence:"Were it not for the generous donation, the charity _____ have survived.", choices:["would not","will not","did not","does not"], answer:0, explanation:"Were it not for～は仮定法過去完了の倒置形。帰結節はwould not have + 過去分詞。", category:"grammar", difficulty:3},
+  {id:275, sentence:"The company needs to _____ a balance between innovation and cost efficiency.", choices:["strike","stroke","stick","stack"], answer:0, explanation:"strike a balanceは「バランスを取る」という定型表現。strokeは「なでる」、stickは「貼る」、stackは「積む」。", category:"grammar_vocab", difficulty:2},
+  {id:276, sentence:"The shareholders expressed _____ about the company's declining market share.", choices:["concern","concert","conceal","concept"], answer:0, explanation:"concernは「懸念」。concertは「演奏会」、concealは「隠す」、conceptは「概念」。", category:"vocab", difficulty:1},
+  {id:277, sentence:"The training session is _____ at helping new hires adapt to the corporate culture.", choices:["aimed","claimed","blamed","named"], answer:0, explanation:"aimed at ～ingは「～を目的としている」。claimed/blamed/namedはatと結びつかない。", category:"grammar_vocab", difficulty:2},
+  {id:278, sentence:"The analyst's forecast turned out to be remarkably _____.", choices:["accurate","adequate","acute","accumulate"], answer:0, explanation:"accurateは「正確な」。adequateは「十分な」、acuteは「鋭い」、accumulateは動詞「蓄積する」。", category:"vocab", difficulty:2},
+  {id:279, sentence:"_____ the fact that sales decreased, the company remained profitable.", choices:["Notwithstanding","Withstanding","Not withstand","Notwithstand"], answer:0, explanation:"Notwithstandingは「～にもかかわらず」という前置詞。Notwithstanding the fact that～は定型表現。", category:"grammar_vocab", difficulty:3},
+  {id:280, sentence:"The _____ candidate will be expected to manage a team of fifteen engineers.", choices:["successful","successive","excessive","susceptible"], answer:0, explanation:"successfulは「合格した・成功した」。successiveは「連続の」、excessiveは「過度の」、susceptibleは「影響を受けやすい」。", category:"vocab", difficulty:2},
+  {id:281, sentence:"The company prides _____ on its excellent customer service record.", choices:["itself","it","its","it's"], answer:0, explanation:"pride oneself on～は「～を誇りにする」の再帰代名詞構文。主語がThe companyなのでitselfが正しい。", category:"grammar", difficulty:2},
+  {id:282, sentence:"The new regulation _____ into effect on the first of next month.", choices:["comes","becomes","turns","falls"], answer:0, explanation:"come into effectは「施行される・発効する」という定型表現。become/turn/fallはこの表現では使わない。", category:"grammar_vocab", difficulty:2},
+  {id:283, sentence:"The study _____ that remote workers are equally productive as office-based employees.", choices:["concluded","excluded","included","secluded"], answer:0, explanation:"concludedは「結論づけた」。excludedは「除外した」、includedは「含んだ」、secludedは「隔離した」。", category:"vocab", difficulty:1},
+  {id:284, sentence:"It is essential that every team member _____ aware of the updated guidelines.", choices:["be","is","are","being"], answer:0, explanation:"It is essential that + S + 動詞原形（仮定法現在）。essentialの後のthat節では原形beを使う。", category:"grammar", difficulty:3},
+  {id:285, sentence:"The keynote speaker provided valuable _____ into current industry trends.", choices:["insights","incites","insides","sites"], answer:0, explanation:"insightsは「洞察・見識」。incitesは「扇動する」、insidesは「内部」、sitesは「場所」。", category:"vocab", difficulty:2},
+  {id:286, sentence:"The project is progressing _____ schedule and is expected to finish early.", choices:["ahead of","behind of","next of","front of"], answer:0, explanation:"ahead of scheduleは「予定より早く」。behind scheduleは「遅れて」で意味が逆。next of/front ofは不自然。", category:"grammar_vocab", difficulty:1},
+  {id:287, sentence:"The human resources department is tasked _____ recruiting qualified candidates.", choices:["with","for","by","to"], answer:0, explanation:"be tasked with ～ingは「～の任務を課されている」。tasked for/by/toは不自然。", category:"grammar", difficulty:2},
+  {id:288, sentence:"The company's _____ reputation has attracted top talent from around the world.", choices:["stellar","cellar","pillar","dollar"], answer:0, explanation:"stellarは「卓越した・素晴らしい」。cellarは「地下室」、pillarは「柱」、dollarは「ドル」。", category:"vocab", difficulty:3},
+  {id:289, sentence:"The invoice must be paid _____ thirty days of receipt.", choices:["within","between","among","during"], answer:0, explanation:"within thirty daysは「30日以内に」。betweenは二者間、amongは三者以上、duringは期間中を示す。", category:"grammar", difficulty:1},
+  {id:290, sentence:"The quality control team _____ every product before it leaves the factory.", choices:["inspects","suspects","respects","expects"], answer:0, explanation:"inspectsは「検査する」。suspectsは「疑う」、respectsは「尊敬する」、expectsは「期待する」。", category:"vocab", difficulty:1},
+  {id:291, sentence:"The new initiative is _____ with the company's overall strategic objectives.", choices:["consistent","persistent","resistant","insistent"], answer:0, explanation:"consistent withは「～と一致している」。persistentは「しつこい」、resistantは「抵抗力のある」、insistentは「主張する」。", category:"grammar_vocab", difficulty:2},
+  {id:292, sentence:"Had we _____ the contract more carefully, we could have avoided the dispute.", choices:["reviewed","reviewing","review","to review"], answer:0, explanation:"Had we + 過去分詞は仮定法過去完了の倒置形。「もっと慎重に契約を確認していたら」の意味。", category:"grammar", difficulty:3},
+  {id:293, sentence:"The seminar will address the _____ challenges facing the healthcare industry.", choices:["pressing","impressing","depressing","suppressing"], answer:0, explanation:"pressingは「差し迫った・緊急の」。impressingは「感銘を与える」、depressingは「憂鬱な」、suppressingは「抑圧する」（動詞）。", category:"vocab", difficulty:2},
+  {id:294, sentence:"The executive _____ her dissatisfaction with the proposed budget cuts.", choices:["voiced","invoiced","devised","advised"], answer:0, explanation:"voicedは「表明した」。invoicedは「請求書を送った」、devisedは「考案した」、advisedは「助言した」。", category:"vocab", difficulty:2},
+  {id:295, sentence:"The new office layout is intended to _____ better communication among staff.", choices:["facilitate","felicitate","fabricate","fascinate"], answer:0, explanation:"facilitateは「促進する」。felicitateは「祝う」、fabricateは「でっち上げる」、fascinateは「魅了する」。", category:"vocab", difficulty:2},
+  {id:296, sentence:"_____ carefully reviewing the proposal, the board decided to approve the project.", choices:["After","During","While","Despite"], answer:0, explanation:"After ～ingは「～した後で」。Duringは名詞を取る、Whileは節を取る（～ing可だが意味が異なる）、Despiteは逆接。", category:"grammar", difficulty:1},
+  {id:297, sentence:"The new employee handbook _____ all current policies and procedures.", choices:["encompasses","accompanies","accomplishes","accumulates"], answer:0, explanation:"encompassesは「包含する・網羅する」。accompaniesは「同行する」、accomplishesは「達成する」、accumulatesは「蓄積する」。", category:"vocab", difficulty:3},
+  {id:298, sentence:"The firm's legal counsel advised them to _____ from making any public statements.", choices:["refrain","restrain","retain","remain"], answer:0, explanation:"refrain from ～ingは「～を控える」。restrainは「抑制する」、retainは「保持する」、remainは「留まる」。", category:"grammar_vocab", difficulty:2},
+  {id:299, sentence:"The _____ between the actual results and the projected figures was significant.", choices:["disparity","prosperity","posterity","dexterity"], answer:0, explanation:"disparityは「格差・不均衡」。prosperityは「繁栄」、posterityは「後世」、dexterityは「器用さ」。", category:"vocab", difficulty:3},
+  {id:300, sentence:"Only after the CEO _____ her speech did the audience begin to ask questions.", choices:["had finished","finished","has finished","was finishing"], answer:0, explanation:"Only after + 過去完了で時間の前後関係を明確にする。倒置構文（did the audience）と共に使う。", category:"grammar", difficulty:3},
 ];
 
 // ===== LONGREAD DATA =====
@@ -2209,6 +2507,7 @@ function renderReadingQuestion() {
   card.classList.add('animate-in');
 
   document.getElementById('readGenre').textContent = q.genre.replace(/_/g,' ') + ' / ' + q.style.replace(/_/g,' ');
+  document.getElementById('readQId').textContent = 'No.' + q.id;
   document.getElementById('readPassage').textContent = q.passage;
   document.getElementById('readQuestion').textContent = q.question;
   document.getElementById('readQuestionTop').textContent = q.question;
@@ -2382,6 +2681,7 @@ function renderClozeQuestion() {
   card.classList.add('animate-in');
 
   document.getElementById('clozeCategory').textContent = q.category.replace(/_/g, ' ');
+  document.getElementById('clozeQId').textContent = 'No.' + q.id;
   // Render sentence with blank highlighted
   const sentenceHtml = q.sentence.replace(/_____/g, '<span class="cloze-blank" id="clozeBlankSpan">_____</span>');
   document.getElementById('clozeSentence').innerHTML = sentenceHtml;
@@ -2500,7 +2800,7 @@ function showClozeResults() {
   const listEl = document.getElementById('clozeWrongList');
   if (s.wrongWords.length > 0) {
     listEl.innerHTML = '<h3>間違えた問題</h3>' + s.wrongWords.map(q =>
-      `<div class="wrong-word-item"><span class="en" style="font-size:0.8rem">${q.sentence.slice(0, 60)}...</span><span class="ja" style="font-size:0.75rem">${q.choices[q.answer]}</span></div>`
+      `<div class="wrong-word-item"><span class="en" style="font-size:0.8rem"><b>No.${q.id}</b> ${q.sentence.slice(0, 50)}...</span><span class="ja" style="font-size:0.75rem">${q.choices[q.answer]}</span></div>`
     ).join('');
   } else {
     listEl.innerHTML = '<h3 style="color:var(--correct)">パーフェクト！全問正解！</h3>';
@@ -2681,7 +2981,7 @@ function renderLongReadQuestion() {
     `Passage ${s.currentPassage + 1}/${s.passages.length} — Q${s.currentQuestion + 1}/${p.questions.length}`;
 
   document.getElementById('longreadQProgress').textContent =
-    `Q${s.currentQuestion + 1} / ${p.questions.length}`;
+    `P${p.id}-Q${q.qid}  (${s.currentQuestion + 1} / ${p.questions.length})`;
 
   const qCard = document.getElementById('longreadQCard');
   qCard.classList.remove('animate-in');
@@ -2826,7 +3126,7 @@ function showLongReadResults() {
   const listEl = document.getElementById('longreadWrongList');
   if (s.wrongWords.length > 0) {
     listEl.innerHTML = '<h3>間違えた問題</h3>' + s.wrongWords.map(w =>
-      `<div class="wrong-word-item"><span class="en" style="font-size:0.8rem">${w.passage.title}: ${w.question.question.slice(0, 40)}...</span><span class="ja" style="font-size:0.75rem">${w.question.choices[w.question.answer].slice(0, 30)}</span></div>`
+      `<div class="wrong-word-item"><span class="en" style="font-size:0.8rem"><b>P${w.passage.id}-Q${w.question.qid}</b> ${w.question.question.slice(0, 40)}...</span><span class="ja" style="font-size:0.75rem">${w.question.choices[w.question.answer].slice(0, 30)}</span></div>`
     ).join('');
   } else {
     listEl.innerHTML = '<h3 style="color:var(--correct)">パーフェクト！全問正解！</h3>';
@@ -2975,7 +3275,7 @@ function showReadingResults() {
   const listEl = document.getElementById('readWrongList');
   if (s.wrongWords.length > 0) {
     listEl.innerHTML = '<h3>間違えた問題</h3>' + s.wrongWords.map(q =>
-      `<div class="wrong-word-item"><span class="en" style="font-size:0.8rem">${q.passage.slice(0, 50)}...</span><span class="ja" style="font-size:0.75rem">${q.choices[q.answer].slice(0, 30)}...</span></div>`
+      `<div class="wrong-word-item"><span class="en" style="font-size:0.8rem"><b>No.${q.id}</b> ${q.passage.slice(0, 40)}...</span><span class="ja" style="font-size:0.75rem">${q.choices[q.answer].slice(0, 30)}...</span></div>`
     ).join('');
   } else {
     listEl.innerHTML = '<h3 style="color:var(--correct)">パーフェクト！全問正解！</h3>';
@@ -3099,7 +3399,7 @@ function endReadingEarly() {
       const listEl = document.getElementById('readWrongList');
       if (s.wrongWords.length > 0) {
         listEl.innerHTML = '<h3>間違えた問題</h3>' + s.wrongWords.map(q =>
-          `<div class="wrong-word-item"><span class="en" style="font-size:0.8rem">${q.passage.split('\n')[0].slice(0, 50)}...</span><span class="ja" style="font-size:0.75rem">${q.choices[q.answer].slice(0, 30)}...</span></div>`
+          `<div class="wrong-word-item"><span class="en" style="font-size:0.8rem"><b>No.${q.id}</b> ${q.passage.split('\n')[0].slice(0, 40)}...</span><span class="ja" style="font-size:0.75rem">${q.choices[q.answer].slice(0, 30)}...</span></div>`
         ).join('');
       } else {
         listEl.innerHTML = '<h3 style="color:var(--correct)">全問正解！</h3>';
