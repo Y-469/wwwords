@@ -2219,9 +2219,15 @@ function renderReadingQuestion() {
   document.getElementById('readPassage').classList.add('mark-mode');
   setupPassageLongPress();
 
+  // Shuffle choices so correct answer isn't always A
+  const indices = q.choices.map((_, i) => i);
+  shuffle(indices);
+  const shuffledChoices = indices.map(i => q.choices[i]);
+  s.shuffledAnswer = indices.indexOf(q.answer);
+
   const keys = ['A', 'B', 'C', 'D'];
   const container = document.getElementById('readChoices');
-  container.innerHTML = q.choices.map((c, i) => `
+  container.innerHTML = shuffledChoices.map((c, i) => `
     <button class="choice-btn" onclick="selectReading(this, ${i})">
       <span class="choice-key">${keys[i]}</span>
       <span>${highlightStrongWords(c)}</span>
@@ -2260,13 +2266,14 @@ function answerReading(btn, chosen) {
   document.getElementById('readConfirmBtn').style.display = 'none';
 
   const q = currentSession.questions[currentSession.current];
-  const isCorrect = chosen === q.answer;
+  const correctIdx = currentSession.shuffledAnswer;
+  const isCorrect = chosen === correctIdx;
   const buttons = document.querySelectorAll('#readChoices .choice-btn');
 
   buttons.forEach((b, i) => {
     b.classList.remove('selected');
     b.classList.add('disabled');
-    if (i === q.answer) b.classList.add('correct');
+    if (i === correctIdx) b.classList.add('correct');
   });
 
   if (isCorrect) {
@@ -2379,9 +2386,15 @@ function renderClozeQuestion() {
   const sentenceHtml = q.sentence.replace(/_____/g, '<span class="cloze-blank" id="clozeBlankSpan">_____</span>');
   document.getElementById('clozeSentence').innerHTML = sentenceHtml;
 
+  // Shuffle choices so correct answer isn't always A
+  const indices = q.choices.map((_, i) => i);
+  shuffle(indices);
+  const shuffledChoices = indices.map(i => q.choices[i]);
+  s.shuffledAnswer = indices.indexOf(q.answer);
+
   const keys = ['A', 'B', 'C', 'D'];
   const container = document.getElementById('clozeChoices');
-  container.innerHTML = q.choices.map((c, i) => `
+  container.innerHTML = shuffledChoices.map((c, i) => `
     <button class="choice-btn" onclick="selectCloze(this, ${i})">
       <span class="choice-key">${keys[i]}</span>
       <span>${c}</span>
@@ -2415,13 +2428,14 @@ function answerCloze(btn, chosen) {
   document.getElementById('clozeConfirmBtn').style.display = 'none';
 
   const q = currentSession.questions[currentSession.current];
-  const isCorrect = chosen === q.answer;
+  const correctIdx = currentSession.shuffledAnswer;
+  const isCorrect = chosen === correctIdx;
   const buttons = document.querySelectorAll('#clozeChoices .choice-btn');
 
   buttons.forEach((b, i) => {
     b.classList.remove('selected');
     b.classList.add('disabled');
-    if (i === q.answer) b.classList.add('correct');
+    if (i === correctIdx) b.classList.add('correct');
   });
 
   if (isCorrect) {
@@ -2676,9 +2690,15 @@ function renderLongReadQuestion() {
 
   document.getElementById('longreadQuestion').textContent = q.question;
 
+  // Shuffle choices so correct answer isn't always A
+  const indices = q.choices.map((_, i) => i);
+  shuffle(indices);
+  const shuffledChoices = indices.map(i => q.choices[i]);
+  s.shuffledAnswer = indices.indexOf(q.answer);
+
   const keys = ['A', 'B', 'C', 'D'];
   const container = document.getElementById('longreadChoices');
-  container.innerHTML = q.choices.map((c, i) => `
+  container.innerHTML = shuffledChoices.map((c, i) => `
     <button class="choice-btn" onclick="selectLongRead(this, ${i})">
       <span class="choice-key">${keys[i]}</span>
       <span>${highlightStrongWords(c)}</span>
@@ -2726,13 +2746,14 @@ function answerLongRead(btn, chosen) {
   const s = currentSession;
   const p = s.passages[s.currentPassage];
   const q = p.questions[s.currentQuestion];
-  const isCorrect = chosen === q.answer;
+  const correctIdx = s.shuffledAnswer;
+  const isCorrect = chosen === correctIdx;
   const buttons = document.querySelectorAll('#longreadChoices .choice-btn');
 
   buttons.forEach((b, i) => {
     b.classList.remove('selected');
     b.classList.add('disabled');
-    if (i === q.answer) b.classList.add('correct');
+    if (i === correctIdx) b.classList.add('correct');
   });
 
   if (isCorrect) {
